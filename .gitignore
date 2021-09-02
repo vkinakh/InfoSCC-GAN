@@ -8,6 +8,11 @@ runs/
 data/MNIST
 data/FashionMNIST
 
+models/AFHQ
+models/CelebA
+models/FashionMNIST
+models/MNIST
+
 ### Images ###
 # JPEG
 *.jpg

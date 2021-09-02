@@ -14,8 +14,9 @@ from torchvision import transforms, utils
 from .base_trainer import BaseTrainer
 from src.models import ResNetSimCLR, LinearClassifier, ConditionalGenerator
 from src.models import Discriminator, MulticlassDiscriminator
+from src.models.fid import get_fid_fn
 from src.loss import get_adversarial_losses, get_regularizer
-from src.data import get_dataset, infinite_loader
+from src.data import get_dataset, infinite_loader, GenDataset
 from src.transform import image_generation_augment
 from src.utils import accumulate
 from src.utils import PathOrStr
@@ -161,8 +162,42 @@ class ConditionalGeneratorTrainer(BaseTrainer):
                     )
 
             if step % save_every == 0:
-                # TODO: add FID calculation
                 self._save_model(step)
+
+    def _compute_fid_score(self) -> float:
+
+        name = self._config['dataset']['name']
+        path = self._config['dataset']['path']
+        anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['anno']
+
+        transform = self._get_data_transform()
+        dataset = GenDataset(name, path, True, anno, transform=transform)
+
+        fid_func = get_fid_fn(dataset, self._device, len(dataset))
+        fid_score = fid_func(self._g_ema)
+        return fid_score
+
+    def _get_data_transform(self):
+
+        name = self._config['dataset']['name']
+        size = self._config['dataset']['size']
+
+        if name in ['mnist', 'fashionmnist']:
+            transform = transforms.Compose([
+                transforms.Resize(size),
+                transforms.ToTensor(),
+                transforms.Normalize(0.5, 0.5, inplace=True)
+            ])
+        elif name in ['afhq', 'celeba']:
+            transform = transforms.Compose([
+                transforms.Resize((size, size)),
+                transforms.ConvertImageDtype(torch.float),
+                transforms.Normalize(0.5, 0.5),
+            ])
+        else:
+            raise ValueError('Unsupported dataset')
+
+        return transform
 
     def _sample_label(self):
 
@@ -198,21 +233,7 @@ class ConditionalGeneratorTrainer(BaseTrainer):
         batch_size = self._config['batch_size']
         n_workers = self._config['n_workers']
 
-        if name in ['mnist', 'fashionmnist']:
-            transform = transforms.Compose([
-                transforms.Resize(size),
-                transforms.ToTensor(),
-                transforms.Normalize(0.5, 0.5, inplace=True)
-            ])
-        elif name in ['afhq', 'celeba']:
-            transform = transforms.Compose([
-                transforms.Resize((size, size)),
-                transforms.ConvertImageDtype(torch.float),
-                transforms.Normalize(0.5, 0.5),
-            ])
-        else:
-            raise ValueError('Unsupported dataset')
-
+        transform = self._get_data_transform()
         dataset = get_dataset(name, path, anno_file=anno, transform=transform)
         loader = infinite_loader(
             DataLoader(
@@ -308,6 +329,8 @@ class ConditionalGeneratorTrainer(BaseTrainer):
         return start_step, generator, discriminator, g_ema, g_optim, d_optim, encoder, classifier
 
     def _save_model(self, step: int):
+        fid = self._compute_fid_score()
+
         ckpt = {
             'step': step,
             'config': self._config,
@@ -316,8 +339,10 @@ class ConditionalGeneratorTrainer(BaseTrainer):
             'g_ema': self._g_ema.state_dict(),
             'g_optim': self._g_optim.state_dict(),
             'd_optim': self._d_optim.state_dict(),
+            'fid': fid
         }
 
+        self._writer.add_scalar('FID', fid, step)
         checkpoint_folder = self._writer.checkpoint_folder
         save_file = checkpoint_folder / f'{step:07}.pt'
         torch.save(ckpt, save_file)
