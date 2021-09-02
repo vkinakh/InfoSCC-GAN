@@ -1,13 +1,13 @@
 import argparse
 
-from src.trainer import ConditionalGeneratorTrainer
+from src.trainer import EpsilonConditionalGeneratorTrainer, ConditionalGeneratorTrainer
 from src.utils import get_config
 
 
 def main(config_path):
 
     config = get_config(config_path)
-    trainer = ConditionalGeneratorTrainer(config_path, config)
+    trainer = EpsilonConditionalGeneratorTrainer(config_path, config)
     trainer.train()
 
 
