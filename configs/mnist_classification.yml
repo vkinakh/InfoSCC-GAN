@@ -1,0 +1,23 @@
+batch_size: 512
+epochs: 1
+
+wd: 1e-6
+lr: 3e-4
+
+fine_tune_from: ./models/MNIST/mnist_classifier.pth
+
+model:
+  n_features: 512
+  n_out: 10
+
+dataset:
+  name: mnist
+  size: 32
+
+encoder:
+  path: ./models/MNIST/mnist.pth
+  base_model: resnet18
+  n_channels: 1
+  out_dim: 256
+
+comment: mnist_classification
