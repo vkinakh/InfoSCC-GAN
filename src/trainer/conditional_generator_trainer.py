@@ -34,9 +34,6 @@ class ConditionalGeneratorTrainer(BaseTrainer):
             self._g_optim, self._d_optim, \
             self._encoder, self._classifier = self._load_model()
 
-        # self._d_adv_loss, self._g_adv_loss = get_adversarial_losses(config['loss'])
-        # self._d_reg_loss = get_regularizer("r1")
-        # self._cls_loss = nn.CrossEntropyLoss()  # TODO: BCE loss for celeba, Cross Entropy for other
         self._d_adv_loss, self._g_adv_loss, self._d_reg_loss, self._cls_loss = self._get_loss()
 
     def train(self) -> NoReturn:
@@ -54,6 +51,7 @@ class ConditionalGeneratorTrainer(BaseTrainer):
         sample_every = self._config['sample_every']
         n_out = self._config['dataset']['n_out']
         disc_type = self._config['discriminator']['type']
+        ds_name = self._config['dataset']['name']
 
         log_sample = self._sample_label()
         samples_folder = self._writer.checkpoint_folder.parent / 'samples'
@@ -77,9 +75,13 @@ class ConditionalGeneratorTrainer(BaseTrainer):
             if (step - self._start_step - 1) % cls_reg_every == 0:
                 self._generator.zero_grad()
 
-                real_label_oh = F.one_hot(real_label, num_classes=n_out).float()
+                if ds_name != 'celeba':
+                    real_label_oh = F.one_hot(real_label, num_classes=n_out).float()
+                    img_out = self._generator(real_label_oh)
+                else:
+                    # In case of CelebA, no need to convert to one hot
+                    img_out = self._generator(real_label)
 
-                img_out = self._generator(real_label_oh)
                 h_out, _ = self._encoder(img_out)
                 pred = self._classifier(h_out)
 
@@ -92,7 +94,8 @@ class ConditionalGeneratorTrainer(BaseTrainer):
                 fake_label = self._sample_label()
                 fake_img = self._generator(fake_label)
 
-            if disc_type == 'multiclass':
+            if disc_type == 'multiclass' and ds_name != 'celeba':
+                # CelebA dataset doesn't support multiclass discriminator
                 real_pred = self._discriminator(augment(real_img), real_label)
                 fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
             else:
@@ -107,7 +110,12 @@ class ConditionalGeneratorTrainer(BaseTrainer):
             # D regularize
             if (step - self._start_step - 1) % d_reg_every == 0:
                 real_img.requires_grad = True
-                real_pred = self._discriminator(augment(real_img), real_label)
+
+                if disc_type == 'multiclass' and ds_name != 'celeba':
+                    real_pred = self._discriminator(augment(real_img), real_label)
+                else:
+                    real_pred = self._discriminator(augment(real_img))
+
                 r1 = self._d_reg_loss(real_pred, real_img) * d_reg
 
                 self._discriminator.zero_grad()
@@ -117,7 +125,11 @@ class ConditionalGeneratorTrainer(BaseTrainer):
             # G update
             fake_label = self._sample_label()
             fake_img = self._generator(fake_label)
-            fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
+
+            if disc_type == 'multiclass' and ds_name != 'celeba':
+                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
+            else:
+                fake_pred = self._discriminator(augment(fake_img))
 
             g_loss_adv = self._g_adv_loss(fake_pred)
             g_loss_reg = self._generator.orthogonal_regularizer() * orth_reg
