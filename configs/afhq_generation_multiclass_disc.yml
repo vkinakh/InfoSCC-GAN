@@ -11,7 +11,7 @@ sample_every: 500
 n_workers: 8
 lr: 1e-4
 
-fine_tune_from: ./runs/Sep02_00-36-57_nv02_afhq_generation_multi_class_disc/checkpoint/0075000.pt
+fine_tune_from: ./runs/Sep02_15-23-19_wyner_afhq_generation_multi_class_disc/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -39,4 +39,4 @@ generator:
 discriminator:
   type: multiclass
 
-comment: afhq_generation_multi_class_disc
+comment: afhq_generation_multi_class_disc_eval
