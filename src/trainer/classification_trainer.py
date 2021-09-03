@@ -41,7 +41,7 @@ class ClassificationTrainer(BaseTrainer):
             total_loss = 0
 
             for img, label in train_dl:
-                img, label = img.to(self._device), label.to(self._device)
+                img, label = img.to(self._device), label.long().to(self._device)
 
                 self._optimizer.zero_grad()
                 logits = self._model(img)
@@ -53,6 +53,7 @@ class ClassificationTrainer(BaseTrainer):
 
             self._writer.add_scalar('train/loss', total_loss, epoch)
         self._eval(test_dl)
+        self._save_model('final')
 
     def evaluate(self):
         ds_name = self._config['dataset']['name']
@@ -88,7 +89,8 @@ class ClassificationTrainer(BaseTrainer):
 
         self._model.train()
         final_acc = correct / total
-        self._writer.add_scalar('eval/accuracy', final_acc, 0)
+        self._writer.add_scalar('eval/accuracy', final_acc, 1)
+        print(final_acc)
         return final_acc
 
     def _eval_celeba(self, loader: DataLoader):
@@ -153,11 +155,11 @@ class ClassificationTrainer(BaseTrainer):
             test_ds = get_dataset(name, './data', False, transform=transform)
         elif name == 'afhq':
             train_path = self._config['dataset']['train_path']
-            train_anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['train_anno']
+            train_anno = None if 'train_anno' not in self._config['dataset'] else self._config['dataset']['train_anno']
             train_ds = get_dataset(name, train_path, anno_file=train_anno, transform=transform)
 
             test_path = self._config['dataset']['test_path']
-            test_anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['test_anno']
+            test_anno = None if 'test_anno' not in self._config['dataset'] else self._config['dataset']['test_anno']
             test_ds = get_dataset(name, test_path, anno_file=test_anno, transform=transform)
         elif name == 'celeba':
             data_path = self._config['dataset']['path']
@@ -221,6 +223,8 @@ class ClassificationTrainer(BaseTrainer):
 
         test_emb = np.array(test_emb, dtype=np.float32)
         test_labels = np.array(test_labels, dtype=np.float32)
+
+        print(np.unique(train_labels), np.unique(test_labels))
 
         train_emb_ds = TensorDataset(torch.from_numpy(train_emb), torch.from_numpy(train_labels))
         train_emb_dl = DataLoader(train_emb_ds, batch_size=batch_size, num_workers=8)

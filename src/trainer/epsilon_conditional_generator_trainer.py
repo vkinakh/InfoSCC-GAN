@@ -135,15 +135,18 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
             # G update
             fake_label = self._sample_label()
             fake_img = self._generator(fake_label)
+            fake_h, _ = self._encoder(fake_img)
 
             if disc_type == 'multiclass' and ds_name != 'celeba':
                 fake_pred = self._disc(augment(fake_img), torch.argmax(fake_label, dim=1))
             else:
                 fake_pred = self._disc(augment(fake_img))
+            fake_h_pred = self._disc_eps(fake_h)
 
             g_loss_adv = self._g_adv_loss(fake_pred)
             g_loss_reg = self._generator.orthogonal_regularizer() * orth_reg
-            g_loss = g_loss_adv + g_loss_reg
+            g_eps_loss_adv = self._g_adv_loss(fake_h_pred)
+            g_loss = g_loss_adv + g_loss_reg + g_eps_loss_adv
 
             self._generator.zero_grad()
             g_loss.backward()
@@ -160,6 +163,7 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
                 self._writer.add_scalar('loss/G', g_loss.item(), step)
                 self._writer.add_scalar('loss/G_orth', g_loss_reg.item(), step)
                 self._writer.add_scalar('loss/G_adv', g_loss_adv.item(), step)
+                self._writer.add_scalar('loss/G_adv_eps', g_eps_loss_adv.item(), step)
 
             if step % sample_every == 0:
                 with torch.no_grad():

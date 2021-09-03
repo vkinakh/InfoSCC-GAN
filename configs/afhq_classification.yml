@@ -1,21 +1,21 @@
 batch_size: 256
-epochs: 1
+epochs: 200
 
 wd: 1e-6
 lr: 3e-4
 
-fine_tune_from: ./models/AFHQ/afhq_classifier_6.pth
+fine_tune_from:
 
 model:
   n_features: 2048
-  n_out: 6
+  n_out: 15
 
 dataset:
   name: afhq
   train_path: /home/kinakh/Datasets/animal_faces/afhq/train
-  train_anno: ./data/afhq/clustering/train_6.csv
+  train_anno: ./data/afhq/clustering/train_15.csv
   test_path: /home/kinakh/Datasets/animal_faces/afhq/val
-  test_anno: ./data/afhq/clustering/val_6.csv
+  test_anno: ./data/afhq/clustering/val_15.csv
   size: 256
 
 encoder:
@@ -24,4 +24,4 @@ encoder:
   n_channels: 3
   out_dim: 128
 
-comment: afhq_6_classification
+comment: afhq_15_classification
