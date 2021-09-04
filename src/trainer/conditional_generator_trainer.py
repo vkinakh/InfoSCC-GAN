@@ -241,7 +241,11 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         return start_step, generator, discriminator, g_ema, g_optim, d_optim, encoder, classifier
 
     def _save_model(self, step: int):
-        fid_score = self._compute_fid_score()
+
+        compute_fid = self._config['fid']
+
+        if compute_fid:
+            fid_score = self._compute_fid_score()
 
         ckpt = {
             'step': step,
@@ -251,10 +255,11 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             'g_ema': self._g_ema.state_dict(),
             'g_optim': self._g_optim.state_dict(),
             'd_optim': self._d_optim.state_dict(),
-            'fid': fid_score
         }
 
-        self._writer.add_scalar('FID', fid_score, step)
+        if compute_fid:
+            ckpt['fid'] = fid_score
+            self._writer.add_scalar('FID', fid_score, step)
         checkpoint_folder = self._writer.checkpoint_folder
         save_file = checkpoint_folder / f'{step:07}.pt'
         torch.save(ckpt, save_file)

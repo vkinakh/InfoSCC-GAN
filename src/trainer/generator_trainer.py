@@ -48,10 +48,14 @@ class GeneratorTrainer(BaseTrainer):
         pass
 
     def evaluate(self):
+        ds_name = self._config['dataset']['name']
+
         fid_score = self._compute_fid_score()
         self._writer.add_scalar('FID', fid_score, 0)
         self._display_output_eps()
-        self._explore_y()
+
+        if ds_name != 'celeba':
+            self._explore_y()
         self._traverse_zk()
         self._explore_eps()
         self._explore_eps_zs()
@@ -188,6 +192,8 @@ class GeneratorTrainer(BaseTrainer):
 
     def _display_output_eps(self) -> NoReturn:
         n_classes = self._config['dataset']['n_out']
+        ds_name = self._config['dataset']['name']
+
         loader = self._get_dl()
         labels, embeddings = [], []
 
@@ -219,7 +225,11 @@ class GeneratorTrainer(BaseTrainer):
         embeddings = np.array(embeddings)
 
         tsne_emb = TSNE(n_components=2).fit_transform(embeddings)
-        img_tsne = tsne_display_tensorboard(tsne_emb, labels, r'T-SNE of the model $\varepsilon$')
+
+        if ds_name != 'celeba':
+            img_tsne = tsne_display_tensorboard(tsne_emb, labels, r'T-SNE of the model $\varepsilon$')
+        else:
+            img_tsne = tsne_display_tensorboard(tsne_emb, title=r'T-SNE of the model $\varepsilon$')
 
         self._writer.add_image('TSNE', img_tsne, 0)
 
