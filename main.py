@@ -7,7 +7,7 @@ from src.utils import get_config
 def train_generation(config_path):
 
     config = get_config(config_path)
-    trainer = OnlyEpsilonConditionalGeneratorTrainer(config_path, config)
+    trainer = ConditionalGeneratorTrainer(config_path, config)
     trainer.train()
 
 

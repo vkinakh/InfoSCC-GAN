@@ -1,0 +1,45 @@
+batch_size: 128
+total_steps: 200000
+cls_reg_every: 4  # how often to apply classification regularization
+d_reg_every: 16   # how often to apply d regularization
+d_reg: 10.0
+orth_reg: 100.0
+
+log_every: 100
+save_every: 5000
+sample_every: 500
+n_workers: 8
+lr: 1e-4
+fid: False
+
+fine_tune_from:
+
+loss: hinge
+
+dataset:
+  name: celeba
+  path: /home/kinakh/Datasets/CelebA/Img/img_align_celeba
+  anno: /home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt
+  columns: ['Bald', 'Mustache', 'Wearing_Hat', 'Eyeglasses', 'Wearing_Necktie']
+  size: 128
+  n_out: 5
+  n_channels: 3
+
+encoder:
+  path: ./models/CelebA/celeba.pth
+  base_model: resnet50
+  out_dim: 128
+
+classifier:
+  path: ./runs/Sep04_22-22-31_nv02_celeba_classification_sel_columns/checkpoint/model_final.pth
+  n_features: 2048
+
+generator:
+  z_size: 512
+  n_basis: 6
+  noise_size: 512
+
+discriminator:
+  type: oneclass
+
+comment: celeba_generation_selected_columns

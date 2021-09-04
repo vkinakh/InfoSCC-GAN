@@ -1,4 +1,4 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, List
 from pathlib import Path
 
 import numpy as np
@@ -51,6 +51,7 @@ class CelebADataset(Dataset):
                  root: PathOrStr,
                  anno_file: PathOrStr,
                  return_anno: bool = False,
+                 columns: Optional[List[str]] = None,
                  transform: Optional[Callable] = None):
         """
         Args:
@@ -60,6 +61,8 @@ class CelebADataset(Dataset):
 
             return_anno: if True, will return 40 attributes, else will return mock value
 
+            columns: columns to select
+
             transform: transform to apply to images
         """
 
@@ -67,6 +70,11 @@ class CelebADataset(Dataset):
         self._transform = transform
         self._image_paths = [x for x in root.glob('*') if x.is_file()]
         self._annotations = get_annotation(anno_file)
+
+        if columns is not None:
+            columns += ['image_id']
+            self._annotations = self._annotations[columns]
+
         self._return_anno = return_anno
         self._columns = list(self._annotations.columns)[1:]
 
@@ -93,3 +101,18 @@ class CelebADataset(Dataset):
     @property
     def columns(self):
         return self._columns
+
+
+if __name__ == '__main__':
+
+    columns = ['Bald', 'Mustache', 'Wearing_Hat', 'Eyeglasses', 'Wearing_Necktie']
+    path = '/home/kinakh/Datasets/CelebA/Img/img_align_celeba'
+    anno = '/home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt'
+
+    dataset = CelebADataset(path, anno, True, columns)
+
+    for i, (img, lbl) in enumerate(dataset):
+        print(lbl)
+
+        if i == 10:
+            break

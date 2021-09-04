@@ -41,7 +41,7 @@ class ClassificationTrainer(BaseTrainer):
             total_loss = 0
 
             for img, label in train_dl:
-                img, label = img.to(self._device), label.long().to(self._device)
+                img, label = img.to(self._device), label.to(self._device)
 
                 self._optimizer.zero_grad()
                 logits = self._model(img)
@@ -90,14 +90,14 @@ class ClassificationTrainer(BaseTrainer):
         self._model.train()
         final_acc = correct / total
         self._writer.add_scalar('eval/accuracy', final_acc, 1)
-        print(final_acc)
         return final_acc
 
     def _eval_celeba(self, loader: DataLoader):
 
         data_path = self._config['dataset']['path']
         anno_path = self._config['dataset']['anno']
-        dataset = get_dataset('celeba', data_path, anno_file=anno_path)
+        columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']
+        dataset = get_dataset('celeba', data_path, anno_file=anno_path, columns=columns)
         columns = dataset.columns
 
         self._model.eval()
@@ -111,14 +111,14 @@ class ClassificationTrainer(BaseTrainer):
                 logits = self._model(img)
             predicted = (torch.sigmoid(logits) > 0.5).float()
 
-            for i in range(40):
+            for i in range(len(columns) - 1):
                 c = label[:, i] == predicted[:, i]
                 correct[i] += c.sum().item()
 
             total += img.size(0)
 
         class_acc = correct
-        for i in range(40):
+        for i in range(len(columns) - 1):
             class_acc[i] = class_acc[i] / total
 
         self._model.train()
@@ -164,7 +164,8 @@ class ClassificationTrainer(BaseTrainer):
         elif name == 'celeba':
             data_path = self._config['dataset']['path']
             anno_path = self._config['dataset']['anno']
-            dataset = get_dataset(name, data_path, anno_file=anno_path, transform=transform)
+            columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']
+            dataset = get_dataset(name, data_path, anno_file=anno_path, transform=transform, columns=columns)
 
             n = len(dataset)
             test_ratio = 0.2
@@ -202,6 +203,8 @@ class ClassificationTrainer(BaseTrainer):
                 h, _ = encoder(img)
 
             embedding = h.detach().cpu().numpy()
+            label = label.numpy()
+
             train_emb.extend(embedding)
             train_labels.extend(label)
 
@@ -224,8 +227,6 @@ class ClassificationTrainer(BaseTrainer):
         test_emb = np.array(test_emb, dtype=np.float32)
         test_labels = np.array(test_labels, dtype=np.float32)
 
-        print(np.unique(train_labels), np.unique(test_labels))
-
         train_emb_ds = TensorDataset(torch.from_numpy(train_emb), torch.from_numpy(train_labels))
         train_emb_dl = DataLoader(train_emb_ds, batch_size=batch_size, num_workers=8)
 
@@ -239,7 +240,6 @@ class ClassificationTrainer(BaseTrainer):
         n_features = self._config['model']['n_features']
         n_out = self._config['model']['n_out']
         model_path = self._config['fine_tune_from']
-
         lr = eval(self._config['lr'])
         wd = eval(self._config['wd'])
 

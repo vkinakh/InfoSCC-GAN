@@ -325,11 +325,12 @@ class GeneratorTrainer(BaseTrainer):
         name = self._config['dataset']['name']
         path = self._config['dataset']['path']
         anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['anno']
+        columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']
         batch_size = self._config['batch_size']
         n_workers = self._config['n_workers']
 
         transform = self._get_data_transform()
-        dataset = get_dataset(name, path, anno_file=anno, transform=transform)
+        dataset = get_dataset(name, path, anno_file=anno, transform=transform, columns=columns)
         loader = infinite_loader(
             DataLoader(
                 dataset,

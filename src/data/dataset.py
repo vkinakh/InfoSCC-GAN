@@ -1,4 +1,4 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, List
 
 from torchvision import datasets
 from torch.utils.data import Dataset
@@ -16,7 +16,27 @@ def get_dataset(name: str,
                 data_path: PathOrStr,
                 train: bool = True,
                 anno_file: Optional[PathOrStr] = None,
-                transform: Optional[Callable] = None) -> Dataset:
+                transform: Optional[Callable] = None,
+                columns: Optional[List[str]] = None) -> Dataset:
+
+    """Returns dataset based on conditions
+
+    Args:
+        name: dataset name
+
+        data_path: path to dataset
+
+        train: if True, them loads train split, False - test split (only for MNIST, FashionMNIST)
+
+        anno_file: path to file for annotation (only for AFHQ, CelebA)
+
+        transform: transform to apply to the data
+
+        columns: list of columns to select (only for CelebA)
+
+    Returns:
+        Dataset: loaded dataset
+    """
 
     if name not in AVAILABLE_DATASETS:
         raise ValueError('Unsupported dataset')
@@ -32,7 +52,7 @@ def get_dataset(name: str,
         else:
             dataset = datasets.ImageFolder(data_path, transform, loader=lambda x: image_loader(str(x)))
     elif name == 'celeba':
-        dataset = CelebADataset(data_path, anno_file, True, transform)
+        dataset = CelebADataset(data_path, anno_file, True, columns, transform)
     else:
         raise ValueError('Unsupported dataset')
 
