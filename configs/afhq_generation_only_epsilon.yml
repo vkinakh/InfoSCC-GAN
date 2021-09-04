@@ -1,8 +1,6 @@
 batch_size: 32
-total_steps: 200000
+total_steps: 300000
 cls_reg_every: 2  # how often to apply classification regularization
-d_reg_every: 16   # how often to apply d regularization
-d_reg: 10.0
 orth_reg: 100.0
 
 log_every: 100
@@ -10,18 +8,17 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
-fid: True
+fid: False
 
-fine_tune_from: ./runs/Sep02_23-57-22_wyner_afhq_generation_15_classes/checkpoint/0200000.pt
+fine_tune_from: /home/kinakh/Development/Projects/eigen-ae/logs/afhq/20210804_215558_cls_2_classes_3/checkpoints/0200000.pt
 
 loss: hinge
 
 dataset:
   name: afhq
   path: /home/kinakh/Datasets/animal_faces/afhq/train
-  anno: ./data/afhq/clustering/train_15.csv
   size: 256
-  n_out: 15
+  n_out: 3
   n_channels: 3
 
 encoder:
@@ -30,7 +27,7 @@ encoder:
   out_dim: 128
 
 classifier:
-  path: ./models/AFHQ/afhq_classifier_15.pth
+  path: ./models/AFHQ/afhq_classifier_3.pth
   n_features: 2048
 
 generator:
@@ -38,11 +35,8 @@ generator:
   n_basis: 6
   noise_size: 512
 
-discriminator:
-  type: oneclass
-
 discriminator_eps:
   inner_dim: 1024
   input_dim: 2048
 
-comment: afhq_generation_15_classes_eval
+comment: afhq_generation_only_epsilon

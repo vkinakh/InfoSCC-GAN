@@ -11,15 +11,13 @@ from torchvision import utils
 
 from .generator_trainer import GeneratorTrainer
 from src.models import ResNetSimCLR, LinearClassifier
-from src.models import ConditionalGenerator
-from src.models import Discriminator, MulticlassDiscriminator, EpsilonDiscriminator
-from src.transform import image_generation_augment
+from src.models import ConditionalGenerator, EpsilonDiscriminator
 from src.utils import PathOrStr, accumulate
 
 
-class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
+class OnlyEpsilonConditionalGeneratorTrainer(GeneratorTrainer):
 
-    """Conditional Generator Trainer with discriminator for epsilon space"""
+    """Conditional Generator Trainer only with discriminator for epsilon space"""
 
     def __init__(self,
                  config_path: PathOrStr,
@@ -28,8 +26,8 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
         super().__init__(config_path, config)
 
         self._start_step, \
-            self._generator, self._disc, self._disc_eps, self._g_ema,\
-            self._g_optim, self._d_optim, self._d_eps_optim, \
+            self._generator, self._disc_eps, self._g_ema, \
+            self._g_optim, self._d_eps_optim, \
             self._encoder, self._classifier = self._load_model()
 
         self._d_adv_loss, self._g_adv_loss, self._d_reg_loss, self._cls_loss = self._get_loss()
@@ -41,25 +39,22 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
         total_steps = self._config['total_steps']
         batch_size = self._config['batch_size']
         cls_reg_every = self._config['cls_reg_every']  # classification consistency regularization
-        d_reg_every = self._config['d_reg_every']  # discriminator consistency regularization
-        d_reg = self._config['d_reg']  # discriminator regularization parameter
+
         orth_reg = self._config['orth_reg']  # orthogonal regularization parameter
         log_every = self._config['log_every']
         save_every = self._config['save_every']
         sample_every = self._config['sample_every']
         n_out = self._config['dataset']['n_out']
-        disc_type = self._config['discriminator']['type']
         ds_name = self._config['dataset']['name']
 
         log_sample = self._sample_label()
         sample_folder = self._writer.checkpoint_folder.parent / 'samples'
         sample_folder.mkdir(exist_ok=True, parents=True)
 
-        augment = image_generation_augment()
         ema = partial(accumulate, decay=0.5 ** (batch_size / (10 * 1000)))
 
         # train loop
-        for step in (iterator := tqdm(range(total_steps), initial=self._start_step)):
+        for step in (iteator := tqdm(range(total_steps), initial=self._start_step)):
 
             step = step + self._start_step + 1
             if step > total_steps:
@@ -89,24 +84,10 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
                 loss_cls.backward()
                 self._g_optim.step()
 
-            # D update
             with torch.no_grad():
                 fake_label = self._sample_label()
                 fake_img = self._generator(fake_label)
                 fake_h, _ = self._encoder(fake_img)
-
-            if disc_type == 'multiclass' and ds_name != 'celeba':
-                # CelebA dataset doesn't support multiclass discriminator
-                real_pred = self._disc(augment(real_img), real_label)
-                fake_pred = self._disc(augment(fake_img), torch.argmax(fake_label, dim=1))
-            else:
-                real_pred = self._disc(augment(real_img))
-                fake_pred = self._disc(augment(fake_img))
-
-            d_loss = self._d_adv_loss(real_pred, fake_pred)
-            self._disc.zero_grad()
-            d_loss.backward()
-            self._d_optim.step()
 
             # D_eps update
             real_eps_pred = self._disc_eps(real_h)
@@ -117,36 +98,12 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
             d_eps_loss.backward()
             self._d_eps_optim.step()
 
-            # D regularize
-            if (step - self._start_step - 1) % d_reg_every == 0:
-                real_img.requires_grad = True
-
-                if disc_type == 'multiclass' and ds_name != 'celeba':
-                    real_pred = self._disc(augment(real_img), real_label)
-                else:
-                    real_pred = self._disc(augment(real_img))
-
-                r1 = self._d_reg_loss(real_pred, real_img) * d_reg
-
-                self._disc.zero_grad()
-                r1.backward()
-                self._d_optim.step()
-
             # G update
-            fake_label = self._sample_label()
-            fake_img = self._generator(fake_label)
             fake_h, _ = self._encoder(fake_img)
-
-            if disc_type == 'multiclass' and ds_name != 'celeba':
-                fake_pred = self._disc(augment(fake_img), torch.argmax(fake_label, dim=1))
-            else:
-                fake_pred = self._disc(augment(fake_img))
             fake_h_pred = self._disc_eps(fake_h)
-
-            g_loss_adv = self._g_adv_loss(fake_pred)
             g_loss_reg = self._generator.orthogonal_regularizer() * orth_reg
             g_eps_loss_adv = self._g_adv_loss(fake_h_pred)
-            g_loss = g_loss_adv + g_loss_reg + g_eps_loss_adv
+            g_loss = g_eps_loss_adv + g_loss_reg
 
             self._generator.zero_grad()
             g_loss.backward()
@@ -157,12 +114,9 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
             # log
             if (step - self._start_step - 1) % log_every == 0:
                 self._writer.add_scalar('loss/cls_loss', loss_cls.item(), step)
-                self._writer.add_scalar('loss/D', d_loss.item(), step)
                 self._writer.add_scalar('loss/D_eps', d_eps_loss.item(), step)
-                self._writer.add_scalar('loss/D_r1', r1.item(), step)
                 self._writer.add_scalar('loss/G', g_loss.item(), step)
                 self._writer.add_scalar('loss/G_orth', g_loss_reg.item(), step)
-                self._writer.add_scalar('loss/G_adv', g_loss_adv.item(), step)
                 self._writer.add_scalar('loss/G_adv_eps', g_eps_loss_adv.item(), step)
 
             if step % sample_every == 0:
@@ -220,18 +174,6 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
         ).to(self._device).train()
         g_ema = copy.deepcopy(generator).eval()
 
-        # discriminator
-        disc_type = self._config['discriminator']['type']
-
-        if disc_type == 'oneclass':
-            disc = Discriminator(n_channels, img_size)
-        elif disc_type == 'multiclass':
-            disc = MulticlassDiscriminator(n_channels, img_size, n_classes)
-        else:
-            raise ValueError('Unsupported discriminator')
-
-        disc = disc.to(self._device).train()
-
         # epsilon discriminator
         inner_dim = self._config['discriminator_eps']['inner_dim']
         input_dim = self._config['discriminator_eps']['input_dim']
@@ -245,12 +187,6 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
             betas=(0.5, 0.99),
         )
 
-        d_optim = optim.Adam(
-            disc.parameters(),
-            lr=lr,
-            betas=(0.5, 0.99),
-        )
-
         d_eps_optim = optim.Adam(
             disc_eps.parameters(),
             lr=lr * 10,
@@ -259,32 +195,30 @@ class EpsilonConditionalGeneratorTrainer(GeneratorTrainer):
 
         start_step = 0
         if fine_tune_from is not None:
-            ckpt = torch.load(fine_tune_from, map_location="cpu")
+            ckpt = torch.load(fine_tune_from, map_location='cpu')
             start_step = ckpt['step']
 
-            generator.load_state_dict(ckpt["g"])
-            disc.load_state_dict(ckpt["d"])
-            disc_eps.load_state_dict(ckpt['d_eps'])
-            g_ema.load_state_dict(ckpt["g_ema"])
-            g_optim.load_state_dict(ckpt["g_optim"])
-            d_optim.load_state_dict(ckpt["d_optim"])
-            d_eps_optim.load_state_dict(ckpt['d_eps_optim'])
+            generator.load_state_dict(ckpt['g'])
+            if 'd_eps' in ckpt:
+                disc_eps.load_state_dict(ckpt['d_eps'])
 
+            g_ema.load_state_dict(ckpt['g_ema'])
+            g_optim.load_state_dict(ckpt['g_optim'])
+
+            if 'd_eps_optim' in ckpt:
+                d_eps_optim.load_state_dict(ckpt['d_eps_optim'])
             print(f'Loaded from {fine_tune_from}')
-
-        return start_step, generator, disc, disc_eps, g_ema, g_optim, d_optim, d_eps_optim, encoder, classifier
+        return start_step, generator, disc_eps, g_ema, g_optim, d_eps_optim, encoder, classifier
 
     def _save_model(self, step: int):
         ckpt = {
             'step': step,
             'config': self._config,
             'g': self._generator.state_dict(),
-            'd': self._disc.state_dict(),
             'd_eps': self._disc_eps.state_dict(),
             'g_ema': self._g_ema.state_dict(),
             'g_optim': self._g_optim.state_dict(),
-            'd_optim': self._d_optim.state_dict(),
-            'd_eps_optim': self._d_eps_optim.state_dict(),
+            'd_eps_optim': self._d_eps_optim.state_dict()
         }
 
         compute_fid = self._config['fid']
