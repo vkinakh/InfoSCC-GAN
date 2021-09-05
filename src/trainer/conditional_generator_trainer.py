@@ -11,7 +11,7 @@ from torchvision import utils
 
 from .generator_trainer import GeneratorTrainer
 from src.models import ResNetSimCLR, LinearClassifier, ConditionalGenerator
-from src.models import Discriminator, MulticlassDiscriminator
+from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator
 from src.transform import image_generation_augment
 from src.utils import accumulate
 from src.utils import PathOrStr
@@ -208,6 +208,12 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             discriminator = Discriminator(n_channels, img_size)
         elif disc_type == 'multiclass':
             discriminator = MulticlassDiscriminator(n_channels, img_size, n_classes)
+        elif disc_type == 'patch':
+            ndf = self._config['discriminator']['ndf']  # number of filters
+            n_layers = self._config['discriminator']['n_layers']
+            actnorm = self._config['discriminator']['actnorm']
+
+            discriminator = NLayerDiscriminator(n_classes, ndf, n_layers, use_actnorm=actnorm)
         else:
             raise ValueError('Unsupported discriminator')
 

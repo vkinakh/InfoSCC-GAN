@@ -1,6 +1,8 @@
 batch_size: 32
-total_steps: 300000
+total_steps: 200000
 cls_reg_every: 2  # how often to apply classification regularization
+d_reg_every: 16   # how often to apply d regularization
+d_reg: 10.0
 orth_reg: 100.0
 
 log_every: 100
@@ -8,9 +10,8 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
-fid: False
 
-fine_tune_from: ./runs/Sep04_20-01-59_wyner_afhq_generation_only_epsilon/checkpoint/0300000.pt
+fine_tune_from:
 
 loss: hinge
 
@@ -35,8 +36,10 @@ generator:
   n_basis: 6
   noise_size: 512
 
-discriminator_eps:
-  inner_dim: 1024
-  input_dim: 2048
+discriminator:
+  type: patch
+  ndf: 64
+  n_layers: 7
+  actnorm: True
 
-comment: afhq_generation_only_epsilon_eval
+comment: afhq_generation_patch_disc

@@ -14,7 +14,7 @@ def train_generation(config_path):
 def evaluate_generation(config_path):
 
     config = get_config(config_path)
-    trainer = ConditionalGeneratorTrainer(config_path, config)
+    trainer = OnlyEpsilonConditionalGeneratorTrainer(config_path, config)
     trainer.evaluate()
 
 

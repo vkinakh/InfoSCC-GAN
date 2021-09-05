@@ -1,6 +1,6 @@
 batch_size: 128
 total_steps: 200000
-cls_reg_every: 8  # how often to apply classification regularization
+cls_reg_every: 4  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
 d_reg: 10.0
 orth_reg: 100.0
@@ -10,8 +10,9 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
+fid: False
 
-fine_tune_from: /home/kinakh/Development/Projects/eigen-ae/logs/celeba/20210901_143135/checkpoints/0095000.pt
+fine_tune_from:
 
 loss: hinge
 
@@ -40,4 +41,4 @@ generator:
 discriminator:
   type: oneclass
 
-comment: celeba_generation
+comment: celeba_generation_eval
