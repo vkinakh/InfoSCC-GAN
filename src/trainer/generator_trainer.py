@@ -50,23 +50,20 @@ class GeneratorTrainer(BaseTrainer):
     def evaluate(self):
         ds_name = self._config['dataset']['name']
 
-        fid_score = self._compute_fid_score()
-        self._writer.add_scalar('FID', fid_score, 0)
-        self._display_output_eps()
+        # fid_score = self._compute_fid_score()
+        # self._writer.add_scalar('FID', fid_score, 0)
 
         if ds_name != 'celeba':
+            self._display_output_eps()
             self._explore_y()
+
         self._traverse_zk()
         self._explore_eps()
         self._explore_eps_zs()
 
     def _explore_eps_zs(self):
-        n_classes = self._config['dataset']['n_out']
         traverse_samples = 8
-
-        y = torch.randint(n_classes, (traverse_samples,))
-        y = F.one_hot(y, num_classes=n_classes).float()
-        y = y.to(self._device)
+        y = self._sample_label(traverse_samples)
 
         log_folder = self._writer.checkpoint_folder.parent / 'explore_eps_zs'
         log_folder.mkdir(exist_ok=True, parents=True)
@@ -94,12 +91,8 @@ class GeneratorTrainer(BaseTrainer):
         )
 
     def _explore_eps(self):
-        n_classes = self._config['dataset']['n_out']
         traverse_samples = 8
-
-        y = torch.randint(n_classes, (traverse_samples,))
-        y = F.one_hot(y, num_classes=n_classes).float()
-        y = y.to(self._device)
+        y = self._sample_label(traverse_samples)
 
         log_folder = self._writer.checkpoint_folder.parent / 'explore_eps'
         log_folder.mkdir(exist_ok=True, parents=True)
@@ -170,19 +163,16 @@ class GeneratorTrainer(BaseTrainer):
                 )
 
     def _explore_y(self) -> NoReturn:
-        n_classes = self._config['dataset']['n_out']
+        n = 49
+        y = self._sample_label(n)
 
-        y = torch.LongTensor(list(range(n_classes)))
-        y = F.one_hot(y, num_classes=n_classes).float()
-        y = y.to(self._device)
-
-        zs = self._g_ema.sample_zs(n_classes)
-        eps = self._g_ema.sample_eps(n_classes)
+        zs = self._g_ema.sample_zs(n)
+        eps = self._g_ema.sample_eps(n)
 
         with torch.no_grad():
             imgs = self._g_ema(y, eps, zs).cpu()
 
-        imgs = [imgs[i] for i in range(n_classes)]
+        imgs = [imgs[i] for i in range(n)]
         imgs = torch.cat(imgs, dim=2)
         imgs = (imgs.permute(1, 2, 0).numpy() * 127.5 + 127.5).astype(np.uint8)
 

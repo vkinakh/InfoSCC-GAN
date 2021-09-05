@@ -162,10 +162,13 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
     def _load_model(self):
 
         lr = eval(self._config['lr'])
+        ds_name = self._config['dataset']['name']
         img_size = self._config['dataset']['size']  # size of the images (input and generated)
         n_channels = self._config['dataset']['n_channels']  # number of channels in the images (input and generated)
         n_classes = self._config['dataset']['n_out']  # number of classes
         fine_tune_from = self._config['fine_tune_from']
+
+        y_type = 'one_hot' if ds_name != 'celeba' else 'multi_label'
 
         # load encoder (pretrained)
         encoder_path = self._config['encoder']['path']
@@ -197,7 +200,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             z_size=z_size,
             out_channels=n_channels,
             n_basis=n_basis,
-            noise_dim=noise_dim
+            noise_dim=noise_dim,
+            y_type=y_type
         ).to(self._device).train()
         g_ema = copy.deepcopy(generator).eval()
 
@@ -212,6 +216,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             ndf = self._config['discriminator']['ndf']  # number of filters
             n_layers = self._config['discriminator']['n_layers']
             actnorm = self._config['discriminator']['actnorm']
+
+            print(f'disc: {disc_type}, ndf: {ndf}, n layer: {n_layers}, actnorm: {actnorm}')
 
             discriminator = NLayerDiscriminator(n_classes, ndf, n_layers, use_actnorm=actnorm)
         else:

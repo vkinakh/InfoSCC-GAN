@@ -12,7 +12,7 @@ device = 'cuda'
 @st.cache(allow_output_mutation=True)
 def load_model():
     print('Loading model')
-    model_path = '/home/kinakh/Development/Projects/eigen-ae/logs/celeba/20210901_143135/checkpoints/0200000.pt'
+    model_path = './runs/Sep04_17-23-58_wyner_celeba_generation_cls_4/checkpoint/0200000.pt'
 
     size = 128
     y_size = n

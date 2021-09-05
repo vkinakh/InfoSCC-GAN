@@ -23,12 +23,17 @@ class ConditionalGenerator(nn.Module):
                  n_basis: int = 6,
                  noise_dim: int = 512,
                  base_channels: int = 16,
-                 max_channels: int = 512):
+                 max_channels: int = 512,
+                 y_type: str = 'one_hot'):
+
+        if y_type not in ['one_hot', 'multi_label']:
+            raise ValueError('Unsupported `y_type`')
 
         super(ConditionalGenerator, self).__init__()
 
         assert (size & (size - 1) == 0) and size != 0, "img size should be a power of 2"
 
+        self.y_type = y_type
         self.y_size = y_size
         self.eps_size = z_size
 
@@ -108,10 +113,13 @@ class ConditionalGenerator(nn.Module):
     def sample(self, batch: int):
         device = self.get_device()
 
-        y = torch.randint(self.y_size, (batch,))
-        y_one_hot = F.one_hot(y, num_classes=self.y_size).float().to(device)
+        if self.y_type == 'one_hot':
+            y = torch.randint(self.y_size, (batch,))
+            y = F.one_hot(y, num_classes=self.y_size).float().to(device)
+        elif self.y_type == 'multi_label':
+            y = torch.randint(2, (batch, self.y_size)).float().to(device)
 
-        return self.forward(y_one_hot)
+        return self.forward(y)
 
     def get_device(self):
         return self.fc.weight.device
