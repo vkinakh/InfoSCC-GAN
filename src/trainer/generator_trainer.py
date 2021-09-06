@@ -50,8 +50,8 @@ class GeneratorTrainer(BaseTrainer):
     def evaluate(self):
         ds_name = self._config['dataset']['name']
 
-        # fid_score = self._compute_fid_score()
-        # self._writer.add_scalar('FID', fid_score, 0)
+        fid_score = self._compute_fid_score()
+        self._writer.add_scalar('FID', fid_score, 0)
 
         if ds_name != 'celeba':
             self._display_output_eps()

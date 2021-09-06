@@ -1,7 +1,15 @@
 import argparse
 
 from src.trainer import OnlyEpsilonConditionalGeneratorTrainer, ConditionalGeneratorTrainer, ClassificationTrainer
+from src.trainer import UnetDiscConditionalGeneratorTrainer
 from src.utils import get_config
+
+
+def train_generation_unet_disc(config_path):
+
+    config = get_config(config_path)
+    trainer = UnetDiscConditionalGeneratorTrainer(config_path, config)
+    trainer.train()
 
 
 def train_generation(config_path):
@@ -47,6 +55,7 @@ if __name__ == '__main__':
     if args.mode == 'train':
 
         if args.task == 'generation':
+            # train_generation_unet_disc(args.config)
             train_generation(args.config)
         elif args.task == 'classification':
             run_classification(args.config)

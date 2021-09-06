@@ -1,6 +1,6 @@
 from typing import Dict, NoReturn
-from functools import partial
 import copy
+from functools import partial
 
 from tqdm import tqdm
 
@@ -11,17 +11,19 @@ from torchvision import utils
 
 from .generator_trainer import GeneratorTrainer
 from src.models import ResNetSimCLR, LinearClassifier, ConditionalGenerator
-from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator
+from src.models import UnetDiscriminator
 from src.transform import image_generation_augment
 from src.utils import accumulate
 from src.utils import PathOrStr
 
 
-class ConditionalGeneratorTrainer(GeneratorTrainer):
+class UnetDiscConditionalGeneratorTrainer(GeneratorTrainer):
 
     def __init__(self,
                  config_path: PathOrStr,
                  config: Dict):
+
+        print('Unet')
 
         super().__init__(config_path, config)
 
@@ -39,14 +41,13 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         total_steps = self._config['total_steps']
         batch_size = self._config['batch_size']
         cls_reg_every = self._config['cls_reg_every']  # classification consistency regularization
+        orth_reg = self._config['orth_reg']  # orthogonal regularization parameter
         d_reg_every = self._config['d_reg_every']   # discriminator regularization
         d_reg = self._config['d_reg']   # discriminator regularization parameter
-        orth_reg = self._config['orth_reg']  # orthogonal regularization parameter
         log_every = self._config['log_every']
         save_every = self._config['save_every']
         sample_every = self._config['sample_every']
         n_out = self._config['dataset']['n_out']
-        disc_type = self._config['discriminator']['type']
         ds_name = self._config['dataset']['name']
 
         log_sample = self._sample_label()
@@ -90,15 +91,12 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
                 fake_label = self._sample_label()
                 fake_img = self._generator(fake_label)
 
-            if disc_type == 'multiclass' and ds_name != 'celeba':
-                # CelebA dataset doesn't support multiclass discriminator
-                real_pred = self._discriminator(augment(real_img), real_label)
-                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
-            else:
-                real_pred = self._discriminator(augment(real_img))
-                fake_pred = self._discriminator(augment(fake_img))
+            real_enc, real_dec = self._discriminator(augment(real_img))
+            fake_enc, fake_dec = self._discriminator(augment(fake_img))
 
-            d_loss = self._d_adv_loss(real_pred, fake_pred)
+            d_loss_enc = self._d_adv_loss(real_enc, fake_enc)
+            d_loss_dec = self._d_adv_loss(real_dec, fake_dec)
+            d_loss = 0.5 * (d_loss_enc + d_loss_dec)
             self._discriminator.zero_grad()
             d_loss.backward()
             self._d_optim.step()
@@ -106,30 +104,19 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             # D regularize
             if (step - self._start_step - 1) % d_reg_every == 0:
                 real_img.requires_grad = True
-
-                if disc_type == 'multiclass' and ds_name != 'celeba':
-                    real_pred = self._discriminator(augment(real_img), real_label)
-                else:
-                    real_pred = self._discriminator(augment(real_img))
-
-                r1 = self._d_reg_loss(real_pred, real_img) * d_reg
-
-                self._discriminator.zero_grad()
-                r1.backward()
-                self._d_optim.step()
+                real_enc, _ = self._discriminator(augment(real_img))
+                r1 = self._d_reg_loss(real_enc, real_img) * d_reg
 
             # G update
             fake_label = self._sample_label()
             fake_img = self._generator(fake_label)
 
-            if disc_type == 'multiclass' and ds_name != 'celeba':
-                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
-            else:
-                fake_pred = self._discriminator(augment(fake_img))
+            fake_enc, fake_dec = self._discriminator(augment(fake_img))
 
-            g_loss_adv = self._g_adv_loss(fake_pred)
+            g_loss_enc = self._g_adv_loss(fake_enc)
+            g_loss_dec = self._g_adv_loss(fake_dec)
             g_loss_reg = self._generator.orthogonal_regularizer() * orth_reg
-            g_loss = g_loss_adv + g_loss_reg
+            g_loss = 0.5 * (g_loss_enc + g_loss_dec) + g_loss_reg
 
             self._generator.zero_grad()
             g_loss.backward()
@@ -141,10 +128,12 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             if (step - self._start_step - 1) % log_every == 0:
                 self._writer.add_scalar('loss/cls_loss', loss_cls.item(), step)
                 self._writer.add_scalar("loss/D", d_loss.item(), step)
-                self._writer.add_scalar("loss/D_r1", r1.item(), step)
+                self._writer.add_scalar('loss/D_enc', d_loss_enc.item(), step)
+                self._writer.add_scalar('loss/D_dec', d_loss_dec.item(), step)
                 self._writer.add_scalar("loss/G", g_loss.item(), step)
                 self._writer.add_scalar("loss/G_orth", g_loss_reg.item(), step)
-                self._writer.add_scalar("loss/G_adv", g_loss_adv.item(), step)
+                self._writer.add_scalar("loss/G_enc", g_loss_enc.item(), step)
+                self._writer.add_scalar('loss/G_dec', g_loss_dec.item(), step)
 
             if step % sample_every == 0:
                 with torch.no_grad():
@@ -167,6 +156,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         n_channels = self._config['dataset']['n_channels']  # number of channels in the images (input and generated)
         n_classes = self._config['dataset']['n_out']  # number of classes
         fine_tune_from = self._config['fine_tune_from']
+
+        y_type = 'one_hot' if ds_name != 'celeba' else 'multi_label'
 
         # load encoder (pretrained)
         encoder_path = self._config['encoder']['path']
@@ -191,7 +182,6 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         z_size = self._config['generator']['z_size']  # size of the input noise
         n_basis = self._config['generator']['n_basis']  # size of the z1, ..., z1 vectors
         noise_dim = self._config['generator']['noise_size']  # size of the noise after adapter, which mixes y and z
-        y_type = self._config['generator']['y_type']
 
         generator = ConditionalGenerator(
             size=img_size,
@@ -205,24 +195,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         g_ema = copy.deepcopy(generator).eval()
 
         # discriminator
-        disc_type = self._config['discriminator']['type']
-
-        if disc_type == 'oneclass':
-            discriminator = Discriminator(n_channels, img_size)
-        elif disc_type == 'multiclass':
-            discriminator = MulticlassDiscriminator(n_channels, img_size, n_classes)
-        elif disc_type == 'patch':
-            ndf = self._config['discriminator']['ndf']  # number of filters
-            n_layers = self._config['discriminator']['n_layers']
-            actnorm = self._config['discriminator']['actnorm']
-
-            print(f'disc: {disc_type}, ndf: {ndf}, n layer: {n_layers}, actnorm: {actnorm}')
-
-            discriminator = NLayerDiscriminator(n_classes, ndf, n_layers, use_actnorm=actnorm)
-        else:
-            raise ValueError('Unsupported discriminator')
-
-        discriminator = discriminator.to(self._device).train()
+        discriminator = UnetDiscriminator(img_size, n_channels).to(self._device).train()
 
         # optimizers
         g_optim = optim.Adam(

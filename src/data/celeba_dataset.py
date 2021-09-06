@@ -72,11 +72,11 @@ class CelebADataset(Dataset):
         self._annotations = get_annotation(anno_file)
 
         if columns is not None:
-            columns += ['image_id']
+            columns.append('image_id')
             self._annotations = self._annotations[columns]
 
         self._return_anno = return_anno
-        self._columns = list(self._annotations.columns)[1:]
+        self._columns = list(self._annotations.columns)[:-1]
 
     def __len__(self) -> int:
         return len(self._image_paths)

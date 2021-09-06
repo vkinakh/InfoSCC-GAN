@@ -99,6 +99,7 @@ class ClassificationTrainer(BaseTrainer):
         columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']
         dataset = get_dataset('celeba', data_path, anno_file=anno_path, columns=columns)
         columns = dataset.columns
+        columns = columns[:-1]
 
         self._model.eval()
 
@@ -111,14 +112,14 @@ class ClassificationTrainer(BaseTrainer):
                 logits = self._model(img)
             predicted = (torch.sigmoid(logits) > 0.5).float()
 
-            for i in range(len(columns) - 1):
+            for i in range(len(columns)):
                 c = label[:, i] == predicted[:, i]
                 correct[i] += c.sum().item()
 
             total += img.size(0)
 
         class_acc = correct
-        for i in range(len(columns) - 1):
+        for i in range(len(columns)):
             class_acc[i] = class_acc[i] / total
 
         self._model.train()
@@ -127,6 +128,9 @@ class ClassificationTrainer(BaseTrainer):
 
         for (col, acc) in zip(columns, class_acc.values()):
             self._writer.add_scalar(f'eval/{col} accuracy', acc, 0)
+
+            print(col, acc)
+
         return global_acc, list(zip(columns, class_acc.values()))
 
     def _get_dls(self) -> Tuple[DataLoader, DataLoader]:
