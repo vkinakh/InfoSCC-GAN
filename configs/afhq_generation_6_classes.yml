@@ -12,7 +12,7 @@ n_workers: 16
 lr: 1e-4
 fid: False
 
-fine_tune_from:
+fine_tune_from: ./runs/Sep05_15-47-09_wyner_afhq_generation_6_classes/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -37,6 +37,7 @@ generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
+  y_type: one_hot
 
 discriminator:
   type: oneclass
@@ -45,4 +46,4 @@ discriminator_eps:
   inner_dim: 1024
   input_dim: 2048
 
-comment: afhq_generation_6_classes
+comment: afhq_generation_6_classes_eval

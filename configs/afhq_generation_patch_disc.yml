@@ -10,6 +10,7 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
+fid: True
 
 fine_tune_from:
 
@@ -39,7 +40,7 @@ generator:
 discriminator:
   type: patch
   ndf: 64
-  n_layers: 7
-  actnorm: True
+  n_layers: 6
+  actnorm: False
 
-comment: afhq_generation_patch_disc
+comment: afhq_generation_patch_disc_6

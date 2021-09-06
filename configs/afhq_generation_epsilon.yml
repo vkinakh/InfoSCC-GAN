@@ -11,7 +11,7 @@ sample_every: 500
 n_workers: 8
 lr: 1e-4
 
-fine_tune_from: ./runs/Sep02_21-01-57_nv02_afhq_generation_epsilon_disc/checkpoint/0005000.pt
+fine_tune_from: ./runs/Sep03_14-02-33_wyner_afhq_generation_epsilon_disc/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -43,4 +43,4 @@ discriminator_eps:
   inner_dim: 1024
   input_dim: 2048
 
-comment: afhq_generation_epsilon_disc
+comment: afhq_generation_epsilon_disc_eval

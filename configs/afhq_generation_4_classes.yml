@@ -11,7 +11,7 @@ sample_every: 500
 n_workers: 8
 lr: 1e-4
 
-fine_tune_from:
+fine_tune_from: ./runs/Sep03_16-48-01_gallager_afhq_generation_4_classes/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -44,4 +44,4 @@ discriminator_eps:
   inner_dim: 1024
   input_dim: 2048
 
-comment: afhq_generation_4_classes
+comment: afhq_generation_4_classes_eval

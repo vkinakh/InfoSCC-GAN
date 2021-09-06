@@ -1,6 +1,6 @@
 batch_size: 128
 total_steps: 200000
-cls_reg_every: 2  # how often to apply classification regularization
+cls_reg_every: 4  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
 d_reg: 10.0
 orth_reg: 100.0
@@ -10,9 +10,9 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
-fid: False
+fid: True
 
-fine_tune_from: ./runs/Sep03_22-23-35_wyner_celeba_generation_cls_2/checkpoint/0200000.pt
+fine_tune_from:
 
 loss: hinge
 
@@ -20,8 +20,9 @@ dataset:
   name: celeba
   path: /home/kinakh/Datasets/CelebA/Img/img_align_celeba
   anno: /home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt
+  columns: ['Bald', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair']
   size: 128
-  n_out: 40
+  n_out: 5
   n_channels: 3
 
 encoder:
@@ -30,15 +31,16 @@ encoder:
   out_dim: 128
 
 classifier:
-  path: ./models/CelebA/celeba_classifier.pth
+  path: ./models/CelebA/celeba_classifier_hair.pth
   n_features: 2048
 
 generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
+  y_type: one_hot
 
 discriminator:
   type: oneclass
 
-comment: celeba_generation_cls_2_eval
+comment: celeba_generation_selected_hair
