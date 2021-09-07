@@ -12,9 +12,9 @@ n_workers: 8
 lr: 1e-4
 fid: True
 
-fine_tune_from: ./runs/Sep05_19-35-53_wyner_afhq_generation_patch_disc_6/checkpoint/0190000.pt
+fine_tune_from:
 
-loss: hinge
+loss: lsgan
 
 dataset:
   name: afhq
@@ -44,4 +44,4 @@ discriminator:
   n_layers: 6
   actnorm: False
 
-comment: afhq_generation_patch_disc_6_eval
+comment: afhq_generation_patch_disc_6_lsgan

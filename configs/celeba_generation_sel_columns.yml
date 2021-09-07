@@ -12,7 +12,7 @@ n_workers: 8
 lr: 1e-4
 fid: False
 
-fine_tune_from:
+fine_tune_from: ./runs/Sep04_22-54-49_wyner_celeba_generation_selected_columns/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -38,8 +38,9 @@ generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
+  y_type: multi_label
 
 discriminator:
   type: oneclass
 
-comment: celeba_generation_selected_columns
+comment: celeba_generation_sel_columns_eval

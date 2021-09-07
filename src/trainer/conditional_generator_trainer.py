@@ -11,7 +11,7 @@ from torchvision import utils
 
 from .generator_trainer import GeneratorTrainer
 from src.models import ResNetSimCLR, LinearClassifier, ConditionalGenerator
-from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator
+from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator, PixelDiscriminator
 from src.transform import image_generation_augment
 from src.utils import accumulate
 from src.utils import PathOrStr
@@ -29,6 +29,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             self._generator, self._discriminator, self._g_ema,\
             self._g_optim, self._d_optim, \
             self._encoder, self._classifier = self._load_model()
+
+        print(config['loss'])
 
         self._d_adv_loss, self._g_adv_loss, self._d_reg_loss, self._cls_loss = self._get_loss()
 
@@ -162,7 +164,6 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
     def _load_model(self):
 
         lr = eval(self._config['lr'])
-        ds_name = self._config['dataset']['name']
         img_size = self._config['dataset']['size']  # size of the images (input and generated)
         n_channels = self._config['dataset']['n_channels']  # number of channels in the images (input and generated)
         n_classes = self._config['dataset']['n_out']  # number of classes
@@ -216,9 +217,12 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             n_layers = self._config['discriminator']['n_layers']
             actnorm = self._config['discriminator']['actnorm']
 
-            print(f'disc: {disc_type}, ndf: {ndf}, n layer: {n_layers}, actnorm: {actnorm}')
-
             discriminator = NLayerDiscriminator(n_classes, ndf, n_layers, use_actnorm=actnorm)
+        elif disc_type == 'pixel':
+            ndf = self._config['discriminator']['ndf']  # number of filters
+            discriminator = PixelDiscriminator(n_channels, ndf)
+
+            print(f'PixelDiscriminator. ndf: {ndf}')
         else:
             raise ValueError('Unsupported discriminator')
 
