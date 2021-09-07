@@ -7,3 +7,4 @@ from .multiclass_discriminator import MulticlassDiscriminator
 from .nlayer_discriminator import NLayerDiscriminator
 from .unet_discriminator import UnetDiscriminator
 from .pixel_discriminator import PixelDiscriminator
+from .resnet_discriminator import ResnetDiscriminator

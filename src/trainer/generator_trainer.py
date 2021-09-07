@@ -278,7 +278,6 @@ class GeneratorTrainer(BaseTrainer):
             torch.Tensor: sampled random label
         """
 
-        # ds_name = self._config['dataset']['name']
         n_out = self._config['dataset']['n_out']  # either number of classes, or size of the out vector (celeba)
         y_type = self._config['generator']['y_type']
 
@@ -298,12 +297,6 @@ class GeneratorTrainer(BaseTrainer):
             y_mult = torch.randint(2, (n, k))
 
             label = torch.cat((y_one_hot, y_mult), dim=1).float().to(self._device)
-
-        # if ds_name == 'celeba':
-        #     label = torch.randint(2, (n, n_out)).float().to(self._device)
-        # else:
-        #     label = torch.randint(n_out, (n,))
-        #     label = F.one_hot(label, num_classes=n_out).float().to(self._device)
 
         return label
 

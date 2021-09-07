@@ -11,7 +11,7 @@ from torchvision import utils
 
 from .generator_trainer import GeneratorTrainer
 from src.models import ResNetSimCLR, LinearClassifier, ConditionalGenerator
-from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator, PixelDiscriminator
+from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator, PixelDiscriminator, ResnetDiscriminator
 from src.transform import image_generation_augment
 from src.utils import accumulate
 from src.utils import PathOrStr
@@ -29,8 +29,6 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             self._generator, self._discriminator, self._g_ema,\
             self._g_optim, self._d_optim, \
             self._encoder, self._classifier = self._load_model()
-
-        print(config['loss'])
 
         self._d_adv_loss, self._g_adv_loss, self._d_reg_loss, self._cls_loss = self._get_loss()
 
@@ -89,7 +87,9 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
 
             # D update
             with torch.no_grad():
-                fake_label = self._sample_label()
+                # fake_label = self._sample_label()
+
+                fake_label = real_label if ds_name == 'celeba' else self._sample_label()
                 fake_img = self._generator(fake_label)
 
             if disc_type == 'multiclass' and ds_name != 'celeba':
@@ -121,7 +121,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
                 self._d_optim.step()
 
             # G update
-            fake_label = self._sample_label()
+            fake_label = real_label if ds_name == 'celeba' else self._sample_label()
+            # fake_label = self._sample_label()
             fake_img = self._generator(fake_label)
 
             if disc_type == 'multiclass' and ds_name != 'celeba':
@@ -222,7 +223,11 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             ndf = self._config['discriminator']['ndf']  # number of filters
             discriminator = PixelDiscriminator(n_channels, ndf)
 
-            print(f'PixelDiscriminator. ndf: {ndf}')
+        elif disc_type == 'resnet':
+            ndf = self._config['discriminator']['ndf']
+            n_blocks = self._config['discriminator']['n_blocks']
+
+            discriminator = ResnetDiscriminator(n_channels, ndf, n_blocks=n_blocks)
         else:
             raise ValueError('Unsupported discriminator')
 

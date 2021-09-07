@@ -1,0 +1,46 @@
+batch_size: 8
+total_steps: 200000
+cls_reg_every: 2  # how often to apply classification regularization
+d_reg_every: 16   # how often to apply d regularization
+d_reg: 10.0
+orth_reg: 100.0
+
+log_every: 100
+save_every: 5000
+sample_every: 500
+n_workers: 8
+lr: 1e-4
+fid: True
+
+fine_tune_from:
+
+loss: hinge
+
+dataset:
+  name: afhq
+  path: /home/kinakh/Datasets/animal_faces/afhq/train
+  size: 256
+  n_out: 3
+  n_channels: 3
+
+encoder:
+  path: ./models/AFHQ/afhq.pth
+  base_model: resnet50
+  out_dim: 128
+
+classifier:
+  path: ./models/AFHQ/afhq_classifier_3.pth
+  n_features: 2048
+
+generator:
+  z_size: 512
+  n_basis: 6
+  noise_size: 512
+  y_type: one_hot
+
+discriminator:
+  type: resnet
+  ndf: 64
+  n_blocks: 5
+
+comment: afhq_generation_resnet_disc_5
