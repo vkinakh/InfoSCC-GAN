@@ -278,18 +278,33 @@ class GeneratorTrainer(BaseTrainer):
             torch.Tensor: sampled random label
         """
 
-        ds_name = self._config['dataset']['name']
+        # ds_name = self._config['dataset']['name']
         n_out = self._config['dataset']['n_out']  # either number of classes, or size of the out vector (celeba)
+        y_type = self._config['generator']['y_type']
 
         if n is None:
             batch_size = self._config['batch_size']
             n = batch_size
 
-        if ds_name == 'celeba':
+        if y_type == 'multi_label':
             label = torch.randint(2, (n, n_out)).float().to(self._device)
-        else:
+        elif y_type == 'one_hot':
             label = torch.randint(n_out, (n,))
             label = F.one_hot(label, num_classes=n_out).float().to(self._device)
+        elif y_type == 'mixed':
+            k = n_out // 2
+            y_one_hot = torch.randint(k, (n,))
+            y_one_hot = F.one_hot(y_one_hot, num_classes=k)
+            y_mult = torch.randint(2, (n, k))
+
+            label = torch.cat((y_one_hot, y_mult), dim=1).float().to(self._device)
+
+        # if ds_name == 'celeba':
+        #     label = torch.randint(2, (n, n_out)).float().to(self._device)
+        # else:
+        #     label = torch.randint(n_out, (n,))
+        #     label = F.one_hot(label, num_classes=n_out).float().to(self._device)
+
         return label
 
     def _get_loss(self):
