@@ -8,11 +8,11 @@ orth_reg: 100.0
 log_every: 100
 save_every: 5000
 sample_every: 500
-n_workers: 8
+n_workers: 12
 lr: 1e-4
 fid: False
 
-fine_tune_from: ./runs/Sep03_22-23-35_wyner_celeba_generation_cls_2/checkpoint/0200000.pt
+fine_tune_from:
 
 loss: hinge
 
@@ -37,8 +37,9 @@ generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
+  y_type: multi_label
 
 discriminator:
   type: oneclass
 
-comment: celeba_generation_cls_2_eval
+comment: celeba_generation_cls_2_real_labels

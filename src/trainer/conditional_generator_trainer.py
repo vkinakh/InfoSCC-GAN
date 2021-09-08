@@ -49,7 +49,9 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         disc_type = self._config['discriminator']['type']
         ds_name = self._config['dataset']['name']
 
-        log_sample = self._sample_label()
+        log_sample = next(loader)[1] if ds_name == 'celeba' else self._sample_label()
+        log_sample = log_sample.to(self._device)
+
         samples_folder = self._writer.checkpoint_folder.parent / 'samples'
         samples_folder.mkdir(exist_ok=True, parents=True)
 

@@ -278,6 +278,8 @@ class GeneratorTrainer(BaseTrainer):
             torch.Tensor: sampled random label
         """
 
+        print('keke')
+
         n_out = self._config['dataset']['n_out']  # either number of classes, or size of the out vector (celeba)
         y_type = self._config['generator']['y_type']
 
