@@ -1,6 +1,6 @@
 batch_size: 128
 total_steps: 200000
-cls_reg_every: 4  # how often to apply classification regularization
+cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
 d_reg: 10.0
 orth_reg: 100.0
@@ -12,7 +12,7 @@ n_workers: 8
 lr: 1e-4
 fid: False
 
-fine_tune_from: ./runs/Sep04_22-54-49_wyner_celeba_generation_selected_columns/checkpoint/0200000.pt
+fine_tune_from:
 
 loss: hinge
 
@@ -43,4 +43,4 @@ generator:
 discriminator:
   type: oneclass
 
-comment: celeba_generation_sel_columns_eval
+comment: celeba_generation_sel_columns_2

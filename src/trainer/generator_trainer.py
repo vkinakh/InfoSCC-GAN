@@ -35,6 +35,10 @@ class GeneratorTrainer(BaseTrainer):
         self._g_ema = None
         self._encoder = None
 
+        # if y type real, load sample dataset
+        if config['generator']['y_type'] == 'real':
+            self._sample_ds = self._get_ds()
+
     @abstractmethod
     def train(self):
         pass
@@ -278,8 +282,6 @@ class GeneratorTrainer(BaseTrainer):
             torch.Tensor: sampled random label
         """
 
-        print('keke')
-
         n_out = self._config['dataset']['n_out']  # either number of classes, or size of the out vector (celeba)
         y_type = self._config['generator']['y_type']
 
@@ -299,6 +301,16 @@ class GeneratorTrainer(BaseTrainer):
             y_mult = torch.randint(2, (n, k))
 
             label = torch.cat((y_one_hot, y_mult), dim=1).float().to(self._device)
+        elif y_type == 'real':
+
+            label = []
+            for i, (_, l) in enumerate(self._sample_ds):
+                if i >= n:
+                    break
+
+                label.append(torch.from_numpy(l))
+
+            label = torch.stack(label).to(self._device)
 
         return label
 
@@ -320,17 +332,22 @@ class GeneratorTrainer(BaseTrainer):
             cls_loss = nn.CrossEntropyLoss()
         return d_adv_loss, g_adv_loss, d_reg_loss, cls_loss
 
-    def _get_dl(self):
+    def _get_ds(self):
 
         name = self._config['dataset']['name']
         path = self._config['dataset']['path']
         anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['anno']
         columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']
-        batch_size = self._config['batch_size']
-        n_workers = self._config['n_workers']
 
         transform = self._get_data_transform()
         dataset = get_dataset(name, path, anno_file=anno, transform=transform, columns=columns)
+        return dataset
+
+    def _get_dl(self):
+        batch_size = self._config['batch_size']
+        n_workers = self._config['n_workers']
+
+        dataset = self._get_ds()
         loader = infinite_loader(
             DataLoader(
                 dataset,

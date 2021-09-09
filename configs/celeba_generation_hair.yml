@@ -1,6 +1,6 @@
 batch_size: 128
 total_steps: 200000
-cls_reg_every: 4  # how often to apply classification regularization
+cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
 d_reg: 10.0
 orth_reg: 100.0
@@ -43,4 +43,4 @@ generator:
 discriminator:
   type: oneclass
 
-comment: celeba_generation_selected_hair
+comment: celeba_generation_selected_hair_2

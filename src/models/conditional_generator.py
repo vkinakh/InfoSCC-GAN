@@ -26,7 +26,7 @@ class ConditionalGenerator(nn.Module):
                  max_channels: int = 512,
                  y_type: str = 'one_hot'):
 
-        if y_type not in ['one_hot', 'multi_label', 'mixed']:
+        if y_type not in ['one_hot', 'multi_label', 'mixed', 'real']:
             raise ValueError('Unsupported `y_type`')
 
         super(ConditionalGenerator, self).__init__()
@@ -116,7 +116,7 @@ class ConditionalGenerator(nn.Module):
         if self.y_type == 'one_hot':
             y = torch.randint(self.y_size, (batch,))
             y = F.one_hot(y, num_classes=self.y_size).float().to(device)
-        elif self.y_type == 'multi_label':
+        elif self.y_type in ['multi_label', 'real']:
             y = torch.randint(2, (batch, self.y_size)).float().to(device)
         elif self.y_type == 'mixed':
             # first half of samples are one-hot encoded, other are multilabel

@@ -1,4 +1,4 @@
-batch_size: 32
+batch_size: 8
 total_steps: 200000
 cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
@@ -12,9 +12,9 @@ n_workers: 8
 lr: 1e-4
 fid: True
 
-fine_tune_from: ./runs/Sep07_14-20-31_wyner_afhq_generation_patch_disc_6_non_saturating/checkpoint/0200000.pt
+fine_tune_from:
 
-loss: non_saturating
+loss: hinge
 
 dataset:
   name: afhq
@@ -39,9 +39,8 @@ generator:
   y_type: one_hot
 
 discriminator:
-  type: patch
+  type: gp_patch
   ndf: 64
-  n_layers: 6
-  actnorm: False
+  n_layers: 4
 
-comment: afhq_generation_patch_disc_6_non_saturating_eval
+comment: afhq_generation_gp_patch_4

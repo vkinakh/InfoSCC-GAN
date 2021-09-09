@@ -12,7 +12,7 @@ device = 'cuda'
 @st.cache(allow_output_mutation=True)
 def load_model():
     print('Loading model')
-    model_path = './runs/Sep04_17-23-58_wyner_celeba_generation_cls_4/checkpoint/0200000.pt'
+    model_path = './runs/Sep08_14-28-05_wyner_celeba_generation_cls_2_real_labels/checkpoint/0200000.pt'
 
     size = 128
     y_size = n

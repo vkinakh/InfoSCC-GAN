@@ -1,6 +1,6 @@
 batch_size: 128
 total_steps: 200000
-cls_reg_every: 4  # how often to apply classification regularization
+cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
 d_reg: 10.0
 orth_reg: 100.0
@@ -38,9 +38,9 @@ generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
-  y_type: mixed   # can be `one_hot`, `multi_label`, `mixed`
+  y_type: real   # can be `one_hot`, `multi_label`, `mixed`, `real`
 
 discriminator:
   type: oneclass
 
-comment: celeba_generation_sel_columns_10
+comment: celeba_generation_sel_columns_10_2
