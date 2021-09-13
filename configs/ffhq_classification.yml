@@ -1,0 +1,25 @@
+batch_size: 256
+epochs: 1
+
+wd: 1e-6
+lr: 3e-4
+
+fine_tune_from:
+
+model:
+  n_features: 2048
+  n_out: 40
+
+dataset:
+  name: celeba
+  path: /home/kinakh/Datasets/CelebA/Img/img_align_celeba
+  anno: /home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt
+  size: 128
+
+encoder:
+  path: ./models/CelebA/celeba.pth
+  base_model: resnet50
+  n_channels: 3
+  out_dim: 128
+
+comment: ffhq_classification

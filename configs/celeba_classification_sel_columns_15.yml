@@ -1,0 +1,26 @@
+batch_size: 256
+epochs: 100
+
+wd: 1e-6
+lr: 3e-4
+
+fine_tune_from:
+
+model:
+  n_features: 2048
+  n_out: 15
+
+dataset:
+  name: celeba
+  path: /home/kinakh/Datasets/CelebA/Img/img_align_celeba
+  anno: /home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt
+  columns: ['Bald', 'Blurry', 'Chubby', 'Double_Chin', 'Eyeglasses', 'Goatee', 'Gray_Hair', 'Mustache', 'Narrow_Eyes', 'Pale_Skin', 'Receding_Hairline', 'Rosy_Cheeks', 'Sideburns', 'Wearing_Hat', 'Wearing_Necktie']
+  size: 128
+
+encoder:
+  path: ./models/CelebA/celeba.pth
+  base_model: resnet50
+  n_channels: 3
+  out_dim: 128
+
+comment: celeba_classification_sel_columns_15
