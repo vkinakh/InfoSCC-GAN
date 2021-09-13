@@ -5,11 +5,12 @@ from torch.utils.data import Dataset
 
 from src.data import AFHQDataset
 from src.data import CelebADataset
+from src.data import FFHQDataset
 from src.utils import PathOrStr
 from src.utils import image_loader
 
 
-AVAILABLE_DATASETS = ['mnist', 'fashionmnist', 'afhq', 'celeba']
+AVAILABLE_DATASETS = ['mnist', 'fashionmnist', 'afhq', 'celeba', 'ffhq']
 
 
 def get_dataset(name: str,
@@ -53,6 +54,8 @@ def get_dataset(name: str,
             dataset = datasets.ImageFolder(data_path, transform, loader=lambda x: image_loader(str(x)))
     elif name == 'celeba':
         dataset = CelebADataset(data_path, anno_file, True, columns, transform)
+    elif name == 'ffhq':
+        dataset = FFHQDataset(data_path, anno_file, transform)
     else:
         raise ValueError('Unsupported dataset')
 
