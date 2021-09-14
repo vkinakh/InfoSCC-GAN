@@ -165,7 +165,7 @@ device = 'cuda'
 @st.cache(allow_output_mutation=True)
 def load_model():
     print('Loading model')
-    model_path = './runs/Sep06_21-23-15_gallager_celeba_generation_sel_columns_10/checkpoint/0200000.pt'
+    model_path = './runs/Sep12_16-23-08_wyner_celeba_generation_sel_columns_10_2/checkpoint/0200000.pt'
 
     size = 128
     y_size = n
@@ -189,8 +189,7 @@ def get_eps_zs(model: ConditionalGenerator):
 st.title('InfoSCC-GAN CelebA demo')
 
 # Define input y
-columns = ['Bald', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair',
-            'Mustache', 'Wearing_Hat', 'Eyeglasses','Wearing_Necktie', 'Double_Chin']
+columns = ['Bald', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair', 'Mustache', 'Wearing_Hat', 'Eyeglasses', 'Wearing_Necktie', 'Double_Chin']
 
 n = len(columns)
 input_y = [0] * n

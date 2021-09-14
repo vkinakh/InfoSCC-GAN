@@ -1,4 +1,4 @@
-batch_size: 32
+batch_size: 40
 total_steps: 200000
 cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
@@ -10,10 +10,11 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
+fid: True
 
 fine_tune_from:
 
-loss:
+loss: non_saturating
 
 dataset:
   name: afhq
@@ -35,8 +36,9 @@ generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
+  y_type: one_hot
 
 discriminator:
-  type: multiclass
+  type: oneclass
 
-comment: afhq_generation
+comment: afhq_generation_non_saturating

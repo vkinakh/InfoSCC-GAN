@@ -12,7 +12,7 @@ n_workers: 8
 lr: 1e-4
 fid: False
 
-fine_tune_from:
+fine_tune_from: ./runs/Sep12_16-03-53_wyner_celeba_generation_sel_columns_2/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -31,7 +31,7 @@ encoder:
   out_dim: 128
 
 classifier:
-  path: ./runs/Sep04_22-22-31_nv02_celeba_classification_sel_columns/checkpoint/model_final.pth
+  path: ./models/CelebA/celeba_classifier_sel_columns_5.pth
   n_features: 2048
 
 generator:
@@ -43,4 +43,4 @@ generator:
 discriminator:
   type: oneclass
 
-comment: celeba_generation_sel_columns_2
+comment: celeba_generation_sel_columns_5_eval
