@@ -194,8 +194,12 @@ columns = ['Bald', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Gray_Hair', 'Musta
 n = len(columns)
 input_y = [0] * n
 
+# Checkbox
+# for i in range(n):
+#     input_y[i] = int(st.checkbox(columns[i]))
+
 for i in range(n):
-    input_y[i] = int(st.checkbox(columns[i]))
+    input_y[i] = st.slider(columns[i], max_value=1., min_value=0., step=0.1)
 
 model = load_model()
 eps, zs = get_eps_zs(model)

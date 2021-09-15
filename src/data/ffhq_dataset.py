@@ -69,3 +69,13 @@ class FFHQDataset(Dataset):
     @property
     def columns(self) -> List[str]:
         return self._columns
+
+
+if __name__ == '__main__':
+
+    p = '/home/kinakh/Datasets/FFHQ/imgs'
+    a = '/home/kinakh/Datasets/FFHQ/ffhq_aging_labels.csv'
+
+    d = FFHQDataset(p, a)
+
+    print(d.columns, len(d.columns))

@@ -74,7 +74,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             if (step - self._start_step - 1) % cls_reg_every == 0:
                 self._generator.zero_grad()
 
-                if ds_name != 'celeba':
+                if ds_name not in ['celeba', 'ffhq']:
                     real_label_oh = F.one_hot(real_label, num_classes=n_out).float()
                     img_out = self._generator(real_label_oh)
                 else:

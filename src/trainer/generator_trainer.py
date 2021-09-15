@@ -243,7 +243,7 @@ class GeneratorTrainer(BaseTrainer):
                 transforms.ToTensor(),
                 transforms.Normalize(0.5, 0.5, inplace=True)
             ])
-        elif name in ['afhq', 'celeba']:
+        elif name in ['afhq', 'celeba', 'ffhq']:
             transform = transforms.Compose([
                 transforms.Resize((size, size)),
                 transforms.ConvertImageDtype(torch.float),
@@ -326,7 +326,7 @@ class GeneratorTrainer(BaseTrainer):
         d_adv_loss, g_adv_loss = get_adversarial_losses(self._config['loss'])
         d_reg_loss = get_regularizer("r1")
 
-        if ds_name == 'celeba':
+        if ds_name in ['celeba', 'ffhq']:
             cls_loss = nn.BCEWithLogitsLoss()
         else:
             cls_loss = nn.CrossEntropyLoss()
