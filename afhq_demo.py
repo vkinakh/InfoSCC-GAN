@@ -5,11 +5,10 @@ import torch
 import torch.nn.functional as F
 
 from src.models import ConditionalGenerator
-from src.utils import get_device
 
 
 # Global settings
-device = get_device()
+device = 'cpu'
 size = 256
 n_channels = 3
 classes = ['Cat', 'Dog', 'Wild']
@@ -29,7 +28,7 @@ def load_model(model_path: str) -> ConditionalGenerator:
 
     print(f'Loading model: {model_path}')
     g_ema = ConditionalGenerator(size, y_size, z_size, n_channels, n_basis, noise_dim)
-    ckpt = torch.load(model_path)
+    ckpt = torch.load(model_path, map_location=torch.device('cpu'))
     g_ema.load_state_dict(ckpt['g_ema'])
     g_ema.eval().to(device)
     return g_ema
