@@ -1,12 +1,13 @@
+from pathlib import Path
 import math
 import streamlit as st
 import numpy as np
 import torch
+from google_drive_downloader import GoogleDriveDownloader as gdd
 
 from src.models import ConditionalGenerator
-from src.utils import get_device
 
-device = get_device()
+device = 'cpu'
 size = 128
 n_channels = 3
 columns = ['Bald', 'Blurry', 'Chubby', 'Double_Chin', 'Eyeglasses', 'Goatee', 'Gray_Hair', 'Mustache', 'Narrow_Eyes',
@@ -20,13 +21,19 @@ bs = 16
 n_cols = 4
 y_type = 'multi_label'
 path = './models/CelebA/celeba_generator_15.pt'
+drive_id = '1VQZrLQI9M_Lm16HAFL5bzqGHz1EOnnNU'
+
+
+def download_model(file_id: str, output_path: str):
+    gdd.download_file_from_google_drive(file_id=file_id,
+                                        dest_path=output_path)
 
 
 @st.cache(allow_output_mutation=True)
 def load_model(model_path: str) -> ConditionalGenerator:
     print('Loading model')
     g_ema = ConditionalGenerator(size, y_size, z_size, n_channels, n_basis, noise_dim)
-    ckpt = torch.load(model_path)
+    ckpt = torch.load(model_path, map_location=torch.device('cpu'))
     g_ema.load_state_dict(ckpt['g_ema'])
     g_ema.eval().to(device)
     return g_ema
@@ -49,6 +56,9 @@ input_y = [0] * n
 # Slider
 for i in range(n):
     input_y[i] = st.slider(columns[i], max_value=1., min_value=0., step=0.1)
+
+if not Path(path).exists():
+    download_model(drive_id, path)
 
 model = load_model(path)
 eps = get_eps(model, bs)

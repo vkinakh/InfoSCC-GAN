@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run celeba_demo_10_labels.py
+web: sh setup.sh && streamlit run celeba_demo_15_labels.py
