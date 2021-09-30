@@ -294,6 +294,10 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             ckpt['fid'] = fid_score
             self._writer.add_scalar('FID', fid_score, step)
 
+            i_score = self._compute_inception_score()
+            ckpt['is'] = i_score
+            self._writer.add_scalar('IS', i_score, step)
+
         checkpoint_folder = self._writer.checkpoint_folder
         save_file = checkpoint_folder / f'{step:07}.pt'
         torch.save(ckpt, save_file)

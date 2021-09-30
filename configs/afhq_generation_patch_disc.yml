@@ -12,9 +12,9 @@ n_workers: 8
 lr: 1e-4
 fid: True
 
-fine_tune_from: ./runs/Sep07_14-20-31_wyner_afhq_generation_patch_disc_6_non_saturating/checkpoint/0200000.pt
+fine_tune_from: ./runs/AFHQ/Sep16_15-54-31_wyner_afhq_generation_patch_disc_6_lsgan/checkpoint/0200000.pt
 
-loss: non_saturating
+loss: lsgan
 
 dataset:
   name: afhq
@@ -44,4 +44,4 @@ discriminator:
   n_layers: 6
   actnorm: False
 
-comment: afhq_generation_patch_disc_6_non_saturating_eval
+comment: afhq_generation_patch_disc_6_lsgan_eval

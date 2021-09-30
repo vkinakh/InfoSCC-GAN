@@ -10,18 +10,18 @@ from src.utils import get_device
 
 # Global settings
 device = get_device()
-size = 256
+size = 128
 n_channels = 3
-classes = ['Cat', 'Dog', 'Wild']
-n_classes = len(classes)
+columns = ['male', 'female', '0-2', '30-39', '3-6', '20-29', '40-49', '50-69', '10-14', '15-19', '7-9', '70-120']
+n = len(columns)
 z_size = noise_dim = 512
 n_layers = int(math.log2(size) - 2)
 n_basis = 6
-y_size = n_classes
+y_size = n
 y_type = 'one_hot'
 bs = 16  # number of samples generate
 n_cols = int(math.sqrt(bs))
-model_path = './models/AFHQ/afhq_generator.pt'
+path = './models/FFHQ/FFHQ_generator.pt'
 
 
 @st.cache(allow_output_mutation=True)
@@ -41,20 +41,25 @@ def get_eps(model: ConditionalGenerator, n: int) -> torch.Tensor:
     return eps.to(device)
 
 
-st.title('InfoSCC-GAN AFHQ demo')
-st.markdown('This demo shows *Stochastic Contrastive Conditional Generative Adversarial Network* (InfoSCC-GAN) '
-            'in action. You can conditionally generate samples from the specific class and change the generated '
-            'images using latent space exploration')
+st.title('InfoSCC-GAN FFHQ demo')
+st.markdown('This demo shown *stochastic Contrastive Conditional Generative Adversarial Network* (InfoSCC-GAN) '
+            'in action. You can conditionally generate samples with the specific attributes and change the generated'
+            'images using latent space exploration. Attributes are in range [0, 1], select them using slider')
 
 st.subheader(r'<- Use sidebar to explore $z_1, ..., z_k$ latent variables')
-label_str = st.radio('Select animal type', options=classes)
+input_y = [0] * n
 
-model = load_model(model_path)
+
+# Slider
+for i in range(n):
+    input_y[i] = st.checkbox(columns[i])
+
+
+model = load_model(path)
 eps = get_eps(model, bs)
 
-# get label
-label = torch.tensor(classes.index(label_str))
-label_one_hot = F.one_hot(label, num_classes=n_classes).float()
+# label
+input_label = torch.FloatTensor(input_y).unsqueeze(0).to(device)
 
 # get zs
 zs = np.array([[0.0] * n_basis] * n_layers, dtype=np.float32)
@@ -71,10 +76,10 @@ if change_eps:
     eps = model.sample_eps(bs).to(device)
 
 zs_torch = torch.from_numpy(zs).unsqueeze(0).repeat(bs, 1, 1).to(device)
-label_input = label_one_hot.unsqueeze(0).repeat(bs, 1).to(device)
+input_label = input_label.repeat(bs, 1).to(device)
 
 with torch.no_grad():
-    imgs = model(label_input, eps, zs_torch).squeeze(0).cpu()
+    imgs = model(input_label, eps, zs_torch).squeeze(0).cpu()
 imgs = [(imgs[i].permute(1, 2, 0).numpy() * 127.5 + 127.5).astype(np.uint8) for i in range(bs)]
 
 

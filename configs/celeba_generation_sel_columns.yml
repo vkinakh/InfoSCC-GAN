@@ -1,4 +1,4 @@
-batch_size: 128
+batch_size: 64
 total_steps: 200000
 cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
@@ -12,7 +12,7 @@ n_workers: 8
 lr: 1e-4
 fid: False
 
-fine_tune_from: ./runs/Sep12_16-03-53_wyner_celeba_generation_sel_columns_2/checkpoint/0200000.pt
+fine_tune_from: ./runs/CelebA/Sep12_16-03-53_wyner_celeba_generation_sel_columns_2/checkpoint/0200000.pt
 
 loss: hinge
 

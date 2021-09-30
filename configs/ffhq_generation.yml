@@ -1,5 +1,5 @@
 batch_size: 32
-total_steps: 200000
+total_steps: 300000
 cls_reg_every: 2  # how often to apply classification regularization
 d_reg_every: 16   # how often to apply d regularization
 d_reg: 10.0
@@ -12,7 +12,7 @@ n_workers: 12
 lr: 1e-4
 fid: False
 
-fine_tune_from:
+fine_tune_from: ./runs/Sep17_22-53-39_nv02_ffhq_generation_cls_2/checkpoint/0200000.pt
 
 loss: hinge
 

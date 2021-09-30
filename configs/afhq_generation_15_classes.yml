@@ -12,7 +12,7 @@ n_workers: 8
 lr: 1e-4
 fid: True
 
-fine_tune_from: ./runs/Sep02_23-57-22_wyner_afhq_generation_15_classes/checkpoint/0200000.pt
+fine_tune_from: ./runs/AFHQ/Sep02_23-57-22_wyner_afhq_generation_15_classes/checkpoint/0200000.pt
 
 loss: hinge
 
@@ -37,6 +37,7 @@ generator:
   z_size: 512
   n_basis: 6
   noise_size: 512
+  y_type: one_hot
 
 discriminator:
   type: oneclass

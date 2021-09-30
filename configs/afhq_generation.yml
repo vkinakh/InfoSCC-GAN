@@ -10,17 +10,17 @@ save_every: 5000
 sample_every: 500
 n_workers: 8
 lr: 1e-4
+fid: True
 
-fine_tune_from: ./runs/AFHQ/Sep03_16-48-01_gallager_afhq_generation_4_classes/checkpoint/0200000.pt
+fine_tune_from: ./runs/AFHQ/Sep18_00-15-46_gallager_afhq_generation_global_oneclass_lsgan_cls_2/checkpoint/0200000.pt
 
-loss: hinge
+loss: lsgan
 
 dataset:
   name: afhq
   path: /home/kinakh/Datasets/animal_faces/afhq/train
-  anno: ./data/afhq/clustering/train_4.csv
   size: 256
-  n_out: 4
+  n_out: 3
   n_channels: 3
 
 encoder:
@@ -29,7 +29,7 @@ encoder:
   out_dim: 128
 
 classifier:
-  path: ./models/AFHQ/afhq_classifier_4.pth
+  path: ./models/AFHQ/afhq_classifier_3.pth
   n_features: 2048
 
 generator:
@@ -41,4 +41,4 @@ generator:
 discriminator:
   type: oneclass
 
-comment: afhq_generation_4_classes_eval
+comment: afhq_generation_global_lsgan_eval

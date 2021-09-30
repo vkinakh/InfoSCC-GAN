@@ -12,7 +12,7 @@ n_workers: 16
 lr: 1e-4
 fid: False
 
-fine_tune_from: ./runs/Sep05_15-47-09_wyner_afhq_generation_6_classes/checkpoint/0200000.pt
+fine_tune_from: ./runs/AFHQ/Sep05_15-47-09_wyner_afhq_generation_6_classes/checkpoint/0200000.pt
 
 loss: hinge
 

@@ -13,6 +13,7 @@ models/AFHQ
 models/CelebA
 models/FashionMNIST
 models/MNIST
+models/FFHQ
 
 ### Images ###
 # JPEG
