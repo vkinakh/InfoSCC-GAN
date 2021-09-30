@@ -1,8 +1,10 @@
+from pathlib import Path
 import math
 import numpy as np
 import streamlit as st
 import torch
 import torch.nn.functional as F
+from google_drive_downloader import GoogleDriveDownloader as gdd
 
 from src.models import ConditionalGenerator
 
@@ -21,6 +23,12 @@ y_type = 'one_hot'
 bs = 16  # number of samples generate
 n_cols = int(math.sqrt(bs))
 model_path = './models/AFHQ/afhq_generator.pt'
+drive_id = '1vRNEVS65xWx6_m9sFnbtP1k-083uy4bQ'
+
+
+def download_model(file_id: str, output_path: str):
+    gdd.download_file_from_google_drive(file_id=file_id,
+                                        dest_path=output_path)
 
 
 @st.cache(allow_output_mutation=True)
@@ -47,6 +55,9 @@ st.markdown('This demo shows *Stochastic Contrastive Conditional Generative Adve
 
 st.subheader(r'<- Use sidebar to explore $z_1, ..., z_k$ latent variables')
 label_str = st.radio('Select animal type', options=classes)
+
+if not Path(model_path).exists():
+    download_model(drive_id, model_path)
 
 model = load_model(model_path)
 eps = get_eps(model, bs)
