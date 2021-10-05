@@ -1,27 +1,27 @@
-batch_size: 256
-epochs: 200
+batch_size: 256  # batch size to use, when training classifier
+epochs: 200      # number of training epochs
 
-wd: 1e-6
-lr: 3e-4
+wd: 1e-6  # weight decay
+lr: 3e-4  # learning rate
 
-fine_tune_from:
+fine_tune_from:  # path to model, to fine tune from
 
-model:
-  n_features: 2048
-  n_out: 15
+model:              # classification model parameters
+  n_features: 2048  # number of input features
+  n_out: <>         # number of classes
 
-dataset:
-  name: afhq
-  train_path: /home/kinakh/Datasets/animal_faces/afhq/train
-  train_anno: ./data/afhq/clustering/train_15.csv
-  test_path: /home/kinakh/Datasets/animal_faces/afhq/val
-  test_anno: ./data/afhq/clustering/val_15.csv
-  size: 256
+dataset:                                   # dataset parameters
+  name: afhq                               # dataset name
+  train_path: <path to train images>       # path to folder with train images
+  train_anno: <path to train annotations>  # path to csv file with train annotations, remove if you want to use ImageFolder dataset
+  test_path: <path to test images>         # path to folder with test images
+  test_anno: <path to test annotations>    # path to csv file with test annotations, remove if you want to use ImageFolder dataset
+  size: 256                                # image size
 
-encoder:
-  path: ./models/AFHQ/afhq.pth
-  base_model: resnet50
-  n_channels: 3
-  out_dim: 128
+encoder:                        # SimCLR encoder parameters
+  path: ./models/AFHQ/afhq.pth  # path to pretrained encoder model
+  base_model: resnet50          # encoder base model
+  n_channels: 3                 # number of image channels
+  out_dim: 128                  # z-projection size
 
-comment: afhq_15_classification
+comment: afhq_classification  # name of the experiment, will be used for checkpoint folder

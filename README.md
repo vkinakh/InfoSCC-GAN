@@ -1,19 +1,32 @@
-# InfoSCC-GAN-supplement
+# Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN
+
+This repos contains official Pytorch implementation of the paper: **Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN**
+
 
 ## Contents
-1. [EigenGAN](#eigen_gan)
-   
-2. [InfoSCC-GAN](#info_scc_gan) <br>
-2.1 [Oneclass global discriminator, Hinge loss, each 2-nd iter classification regularization](#info_scc_gan_global_one_hinge_2) <br>
-2.2 [Oneclass global discriminator, Non saturating loss, each 2-nd iter classification regularization](#info_scc_gan_global_one_non_satur_2)   
-2.3 [Multiclass global discriminator, Hinge loss, each 2-nd iteration classification regularization](#info_scc_gan_global_multi_hinge) <br>
-2.4 [Oneclass patch discriminator, Hinge loss, each 2-nd iteration classification regularization](#info_scc_gan_patch_one_hinge) <br>
-2.5 [Oneclass patch discriminator, Non-saturating loss, each 2-nd iteration classification regularization](#info_scc_gan_patch_one_non_saturating) <br>
-2.6 [Oneclass path discriminator, LSGAN loss, each 2-nd iteration classification regularization](#info_scc_gan_patch_one_lsgan)
+
+1. [Animal Faces High Quality experiments](#afhq_experiments) <br>
+1.1 [Animal Faces Demo](#afhq_demo) <br>
+1.2 [EigenGAN experiment](#eigen_gan)  <br>
+1.3 [InfoSCC-GAN experiments](#info_scc_gan) <br>
+   - [Oneclass global discriminator, Hinge loss, each 2-nd iter classification regularization](#info_scc_gan_global_one_hinge_2) <br>
+   - [Oneclass global discriminator, Non saturating loss, each 2-nd iter classification regularization](#info_scc_gan_global_one_non_satur_2)
+   - [Multiclass global discriminator, Hinge loss, each 2-nd iteration classification regularization](#info_scc_gan_global_multi_hinge) <br>
+   - [Oneclass patch discriminator, Hinge loss, each 2-nd iteration classification regularization](#info_scc_gan_patch_one_hinge) <br>
+   - [Oneclass patch discriminator, Non-saturating loss, each 2-nd iteration classification regularization](#info_scc_gan_patch_one_non_saturating) <br>
+   - [Oneclass path discriminator, LSGAN loss, each 2-nd iteration classification regularization](#info_scc_gan_patch_one_lsgan)
+2. [CelebA experiments](#celeba_experiments) <br>
+2.1 [CelebA Demo with 10 attributes](#celeba_10_demo) <br>
+2.2 [CelebA Demo with 15 attributes](#celeba_15_demo) <br>
+3. [Run experiment](RUN.md)
    
 <!-- ################################################################################# 
 'Vanilla 'EigenGAN
 ################################################################################# -->
+
+<h1 align="center"><a name="afhq_experiments"></a> Animal Faces High Quality experiments</h1>
+
+<h2 align="center"><a name="afhq_demo"></a> <a href="https://info-scc-afhq.herokuapp.com/">AFHQ demo</a> </h2>
 
 <h2 align="center"> <a name="eigen_gan"></a> EigenGAN exploration </h2>
 <!--
@@ -255,3 +268,8 @@ InfoSCC-GAN. Oneclass discriminator, Hinge loss, classification regularization e
 <p align="center"><img src="images/AFHQ_InfoSCC_patch_oneclass_lsgan_cls_2/explore_y_0.png"></p>
 <p align="center"><img src="images/AFHQ_InfoSCC_patch_oneclass_lsgan_cls_2/explore_y_1.png"></p>
 <p align="center">Fix <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=z_1, ..., z_k">, explore all <img src="https://render.githubusercontent.com/render/math?math=y"></p>
+
+<h1 align="center"><a name="celeba_experiments"></a> CelebA experiments</h1>
+
+<h2 align="center"><a name="celeba_10_demo"></a> <a href="https://info-scc-celeba-10.herokuapp.com/">CelebA demo with 10 attributes</a> </h2>
+<h2 align="center"><a name="celeba_15_demo"></a> <a href="https://info-scc-celeba-15.herokuapp.com/">CelebA demo with 15 attributes</a> </h2>

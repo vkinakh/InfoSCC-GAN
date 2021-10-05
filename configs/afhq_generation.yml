@@ -1,44 +1,45 @@
-batch_size: 32
-total_steps: 200000
-cls_reg_every: 2  # how often to apply classification regularization
-d_reg_every: 16   # how often to apply d regularization
-d_reg: 10.0
-orth_reg: 100.0
+batch_size: 32       # batch size to use, when training generator
+total_steps: 200000  # number of total training steps
+cls_reg_every: 2     # how often to apply classification regularization
+d_reg_every: 16      # how often to apply d regularization
+d_reg: 10.0          # d regularization parameter
+orth_reg: 100.0      # generator orthogonal regularization parameter
 
-log_every: 100
-save_every: 5000
-sample_every: 500
-n_workers: 8
-lr: 1e-4
-fid: True
+log_every: 100     # how often to log losses to tensorboard
+save_every: 5000   # how often to save model checkpoints
+sample_every: 500  # how often to save generated images
+n_workers: 8       # number of workers in dataloader
+lr: 1e-4           # learning rate
+fid: True          # if True, then FID will be calculated when saving checkpoint model
 
-fine_tune_from: ./runs/AFHQ/Sep18_00-15-46_gallager_afhq_generation_global_oneclass_lsgan_cls_2/checkpoint/0200000.pt
+fine_tune_from:  # path to model, to fine tune from
 
-loss: lsgan
+loss: hinge  # type of loss to use. Options: 'hinge', 'non_saturating' and 'lsgan'
 
-dataset:
-  name: afhq
-  path: /home/kinakh/Datasets/animal_faces/afhq/train
-  size: 256
-  n_out: 3
-  n_channels: 3
+dataset:                       # dataset parameters
+  name: afhq                   # dataset name
+  path: <path to images>       # path to folder with images
+  anno: <path to annotations>  # path to annotations, remove if you want to use "external" attributes dataset
+  size: 256                    # image size
+  n_out: <>                    # number of attributes for each image
+  n_channels: 3                # number of channels in image
 
-encoder:
-  path: ./models/AFHQ/afhq.pth
-  base_model: resnet50
-  out_dim: 128
+encoder:                # encoder parameters
+  path: <>              # path to pretrained encoder model
+  base_model: resnet50  # encoder base model
+  out_dim: 128          # z-projection size
 
-classifier:
-  path: ./models/AFHQ/afhq_classifier_3.pth
-  n_features: 2048
+classifier:         # classifier parameters
+  path: <>          # path to pretrained classifier model
+  n_features: 2048  # number of input features in the classifier model
 
-generator:
-  z_size: 512
-  n_basis: 6
-  noise_size: 512
-  y_type: one_hot
+generator:         # generator parameters
+  z_size: 512      # z vector size
+  n_basis: 6       # size of the z1, ... zk input variables
+  noise_size: 512  # size of the generator input (generator input is attributes mixed with z vector sampled from N(0, 1))
+  y_type: one_hot  # type of attributes. Choices: 'one_hot' and 'multi_label'
 
-discriminator:
-  type: oneclass
+discriminator:    # discriminator parameters
+  type: oneclass  # type of discriminator. Choices: 'oneclass' and 'patch'
 
-comment: afhq_generation_global_lsgan_eval
+comment: afhq_generation

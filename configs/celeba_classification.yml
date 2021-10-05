@@ -1,25 +1,26 @@
-batch_size: 256
-epochs: 1
+batch_size: 256  # batch size to use, when training classifier
+epochs: 200      # number of training epochs
 
-wd: 1e-6
-lr: 3e-4
+wd: 1e-6  # weight decay
+lr: 3e-4  # learning rate
 
-fine_tune_from: ./models/CelebA/celeba_classifier.pth
+fine_tune_from:  # path to model, to fine tune from
 
-model:
-  n_features: 2048
-  n_out: 40
+model:              # classifier parameters
+  n_features: 2048  # number of input features
+  n_out: <>         # number of attributes
 
-dataset:
-  name: celeba
-  path: /home/kinakh/Datasets/CelebA/Img/img_align_celeba
-  anno: /home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt
-  size: 128
+dataset:                                 # dataset parameters
+  name: celeba                           # dataset name
+  path: <path to folder with images>     # path to folder with images
+  anno: <path to file with annotations>  # path to file with annotations
+  columns: []                            # list of columns, remove if you want to use all 40 attributes
+  size: 128                              # image size
 
-encoder:
-  path: ./models/CelebA/celeba.pth
-  base_model: resnet50
-  n_channels: 3
-  out_dim: 128
+encoder:                            # encoder parameters
+  path: ./models/CelebA/celeba.pth  # path to pretrained encoder
+  base_model: resnet50              # encoder based model
+  n_channels: 3                     # number of image channels
+  out_dim: 128                      # z-projection size
 
 comment: celeba_classification
