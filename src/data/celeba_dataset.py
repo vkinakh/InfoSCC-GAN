@@ -103,18 +103,3 @@ class CelebADataset(Dataset):
     @property
     def columns(self):
         return self._columns
-
-
-if __name__ == '__main__':
-
-    columns = ['Bald', 'Mustache', 'Wearing_Hat', 'Eyeglasses', 'Wearing_Necktie']
-    path = '/home/kinakh/Datasets/CelebA/Img/img_align_celeba'
-    anno = '/home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt'
-
-    dataset = CelebADataset(path, anno, True, columns)
-
-    for i, (img, lbl) in enumerate(dataset):
-        print(lbl)
-
-        if i == 10:
-            break

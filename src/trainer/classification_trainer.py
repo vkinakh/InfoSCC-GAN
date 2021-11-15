@@ -31,7 +31,7 @@ class ClassificationTrainer(BaseTrainer):
         epochs = self._config['epochs']
         ds_name = self._config['dataset']['name']
 
-        if ds_name in ['celeba', 'ffhq']:
+        if ds_name in ['celeba']:
             criterion = nn.BCEWithLogitsLoss()
         else:
             criterion = nn.CrossEntropyLoss()
@@ -62,7 +62,7 @@ class ClassificationTrainer(BaseTrainer):
     def _eval(self, loader: DataLoader):
         ds_name = self._config['dataset']['name']
 
-        if ds_name in ['celeba', 'ffhq']:
+        if ds_name in ['celeba']:
             return self._eval_multi_label(loader)
 
         return self._eval_classification(loader)
@@ -131,85 +131,6 @@ class ClassificationTrainer(BaseTrainer):
 
         return global_acc, list(zip(columns, class_acc.values()))
 
-    # def _eval_ffhq(self, loader: DataLoader):
-    #
-    #     data_path = self._config['dataset']['path']
-    #     anno_path = self._config['dataset']['anno']
-    #     dataset = get_dataset('ffhq', data_path, anno_file=anno_path)
-    #     columns = dataset.columns
-    #
-    #     self._model.eval()
-    #     correct = defaultdict(int)
-    #     total = 0
-    #
-    #     for (img, label) in loader:
-    #         img, label = img.to(self._device), label.to(self._device)
-    #         with torch.no_grad():
-    #             logits = self._model(img)
-    #         predicted = (torch.sigmoid(logits) > 0.5).float()
-    #
-    #         for i in range(len(columns)):
-    #             c = label[:, i] == predicted[:, i]
-    #             correct[i] += c.sum().item()
-    #
-    #         total += img.size(0)
-    #
-    #     class_acc = correct
-    #     for i in range(len(columns)):
-    #         class_acc[i] = class_acc[i] / total
-    #
-    #     self._model.train()
-    #     global_acc = np.mean(list(class_acc.values()))
-    #     self._writer.add_scalar('eval/accuracy', global_acc, 0)
-    #
-    #     for (col, acc) in zip(columns, class_acc.values()):
-    #         self._writer.add_scalar(f'eval/{col} accuracy', acc, 0)
-    #
-    #         print(col, acc)
-    #
-    #     return global_acc, list(zip(columns, class_acc.values()))
-    #
-    # def _eval_celeba(self, loader: DataLoader):
-    #
-    #     data_path = self._config['dataset']['path']
-    #     anno_path = self._config['dataset']['anno']
-    #     columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']
-    #     dataset = get_dataset('celeba', data_path, anno_file=anno_path, columns=columns)
-    #     columns = dataset.columns
-    #     columns = columns[:-1]
-    #
-    #     self._model.eval()
-    #
-    #     correct = defaultdict(int)
-    #     total = 0
-    #
-    #     for (img, label) in loader:
-    #         img, label = img.to(self._device), label.to(self._device)
-    #         with torch.no_grad():
-    #             logits = self._model(img)
-    #         predicted = (torch.sigmoid(logits) > 0.5).float()
-    #
-    #         for i in range(len(columns)):
-    #             c = label[:, i] == predicted[:, i]
-    #             correct[i] += c.sum().item()
-    #
-    #         total += img.size(0)
-    #
-    #     class_acc = correct
-    #     for i in range(len(columns)):
-    #         class_acc[i] = class_acc[i] / total
-    #
-    #     self._model.train()
-    #     global_acc = np.mean(list(class_acc.values()))
-    #     self._writer.add_scalar('eval/accuracy', global_acc, 0)
-    #
-    #     for (col, acc) in zip(columns, class_acc.values()):
-    #         self._writer.add_scalar(f'eval/{col} accuracy', acc, 0)
-    #
-    #         print(col, acc)
-    #
-    #     return global_acc, list(zip(columns, class_acc.values()))
-
     def _get_dls(self) -> Tuple[DataLoader, DataLoader]:
 
         name = self._config['dataset']['name']
@@ -223,7 +144,7 @@ class ClassificationTrainer(BaseTrainer):
                 transforms.ToTensor(),
                 transforms.Normalize(0.5, 0.5, inplace=True)
             ])
-        elif name in ['afhq', 'celeba', 'ffhq']:
+        elif name in ['afhq', 'celeba']:
             transform = transforms.Compose([
                 transforms.Resize((size, size)),
                 transforms.ConvertImageDtype(torch.float),
@@ -242,7 +163,7 @@ class ClassificationTrainer(BaseTrainer):
             test_path = self._config['dataset']['test_path']
             test_anno = None if 'test_anno' not in self._config['dataset'] else self._config['dataset']['test_anno']
             test_ds = get_dataset(name, test_path, anno_file=test_anno, transform=transform)
-        elif name in ['celeba', 'ffhq']:
+        elif name in ['celeba']:
             data_path = self._config['dataset']['path']
             anno_path = self._config['dataset']['anno']
             columns = None if 'columns' not in self._config['dataset'] else self._config['dataset']['columns']

@@ -7,5 +7,3 @@ from .summary_writer_with_sources import SummaryWriterWithSources
 from .custom_types import PathOrStr
 
 from .plot import tsne_display_tensorboard
-
-from .ndtest import ks2d2s

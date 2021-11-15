@@ -21,7 +21,6 @@ from src.models import inception_score
 from src.loss import get_adversarial_losses, get_regularizer
 from src.utils import PathOrStr
 from src.utils import tsne_display_tensorboard
-from src.utils import ks2d2s
 
 
 class GeneratorTrainer(BaseTrainer):
@@ -193,39 +192,6 @@ class GeneratorTrainer(BaseTrainer):
 
         chamfer_dist = ChamferDistance()
         return chamfer_dist(tsne_real, tsne_fake).detach().item()
-
-    def _kolmogorov_smirnov_test(self) -> float:
-        loader = self._get_dl()
-        embeddings = []
-
-        # real data embeddings
-        for _ in tqdm(range(200)):
-            img, _ = next(loader)
-            img = img.to(self._device)
-
-            with torch.no_grad():
-                h, _ = self._encoder(img)
-
-            embeddings.extend(h.cpu().numpy())
-
-        # generated data embeddings
-        for _ in tqdm(range(200)):
-            label_oh = self._sample_label()
-
-            with torch.no_grad():
-                img = self._g_ema(label_oh)
-                h, _ = self._encoder(img)
-
-            embeddings.extend(h.cpu().numpy())
-
-        tsne_emb = TSNE(n_components=2).fit_transform(embeddings)
-        n = len(tsne_emb)
-
-        tsne_real = tsne_emb[:n//2, ]
-        tsne_fake = tsne_emb[n//2:, ]
-
-        ks_test = ks2d2s(tsne_real[:, 0], tsne_real[:, 1], tsne_fake[:, 0], tsne_fake[:, 1])
-        return ks_test
 
     def _explore_eps_zs(self):
         traverse_samples = 8
