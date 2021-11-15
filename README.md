@@ -1,6 +1,6 @@
 # Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN
 
-This repos contains official Pytorch implementation of the paper: **Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN**
+This repos contains official Pytorch implementation of the paper: **Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN**, accepted at NeurIPS 2021 Workshop [Bayesian Deep Learning](http://bayesiandeeplearning.org/)
 
 ## Demos
 

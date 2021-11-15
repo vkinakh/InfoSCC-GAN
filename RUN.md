@@ -6,8 +6,14 @@ conda env create -f environment.yml
 
 # Training
 
-<!-- ## Training of the encoder
-TODO -->
+## Training of the encoder
+
+To run the training of the encoder (SimCLR) first fill the **config file**. Example of detailed config file is available: `configs/afhq_encoder.yaml` and `configs/celeba_encoder.yaml`
+
+Then run
+```bash
+python main.py --mode train --task encoder --config <path to config file>
+```
 
 ## Training of the classifier
 To run the training of the classifier, first fill the **config file**. Examples of detailed config files for Animal 
