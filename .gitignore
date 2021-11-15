@@ -5,6 +5,7 @@
 .idea/
 runs/
 results/
+old_runs/
 
 data/MNIST
 data/FashionMNIST
