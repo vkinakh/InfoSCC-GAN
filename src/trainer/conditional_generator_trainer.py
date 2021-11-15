@@ -11,14 +11,15 @@ from torchvision import utils
 
 from .generator_trainer import GeneratorTrainer
 from src.models import ResNetSimCLR, LinearClassifier, ConditionalGenerator
-from src.models import Discriminator, MulticlassDiscriminator, NLayerDiscriminator, PixelDiscriminator
-from src.models import ResnetDiscriminator, GPPatchMcResDis
+from src.models import Discriminator, NLayerDiscriminator
 from src.transform import image_generation_augment
 from src.utils import accumulate
 from src.utils import PathOrStr
 
 
 class ConditionalGeneratorTrainer(GeneratorTrainer):
+
+    """Trainer for conditional generator"""
 
     def __init__(self,
                  config_path: PathOrStr,
@@ -35,6 +36,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
 
     def train(self) -> NoReturn:
 
+        """Runs training of the conditional generator"""
+
         loader = self._get_dl()
 
         total_steps = self._config['total_steps']
@@ -47,7 +50,6 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
         save_every = self._config['save_every']
         sample_every = self._config['sample_every']
         n_out = self._config['dataset']['n_out']
-        disc_type = self._config['discriminator']['type']
         ds_name = self._config['dataset']['name']
 
         log_sample = next(loader)[1] if ds_name == 'celeba' else self._sample_label()
@@ -74,7 +76,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             if (step - self._start_step - 1) % cls_reg_every == 0:
                 self._generator.zero_grad()
 
-                if ds_name not in ['celeba', 'ffhq']:
+                if ds_name not in ['celeba']:
                     real_label_oh = F.one_hot(real_label, num_classes=n_out).float()
                     img_out = self._generator(real_label_oh)
                 else:
@@ -95,16 +97,8 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
                 fake_label = real_label if ds_name == 'celeba' else self._sample_label()
                 fake_img = self._generator(fake_label)
 
-            if disc_type == 'multiclass' and ds_name != 'celeba':
-                # CelebA dataset doesn't support multiclass discriminator
-                real_pred = self._discriminator(augment(real_img), real_label)
-                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
-            elif disc_type == 'gp_patch':
-                real_pred = self._discriminator(augment(real_img), real_label)[0]
-                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))[0]
-            else:
-                real_pred = self._discriminator(augment(real_img))
-                fake_pred = self._discriminator(augment(fake_img))
+            real_pred = self._discriminator(augment(real_img))
+            fake_pred = self._discriminator(augment(fake_img))
 
             d_loss = self._d_adv_loss(real_pred, fake_pred)
             self._discriminator.zero_grad()
@@ -114,13 +108,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             # D regularize
             if (step - self._start_step - 1) % d_reg_every == 0:
                 real_img.requires_grad = True
-
-                if disc_type == 'multiclass' and ds_name != 'celeba':
-                    real_pred = self._discriminator(augment(real_img), real_label)
-                elif disc_type == 'gp_patch':
-                    real_pred = self._discriminator(augment(real_img), real_label)[0]
-                else:
-                    real_pred = self._discriminator(augment(real_img))
+                real_pred = self._discriminator(augment(real_img))
 
                 r1 = self._d_reg_loss(real_pred, real_img) * d_reg
 
@@ -132,13 +120,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             fake_label = real_label if ds_name == 'celeba' else self._sample_label()
             # fake_label = self._sample_label()
             fake_img = self._generator(fake_label)
-
-            if disc_type == 'multiclass' and ds_name != 'celeba':
-                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))
-            elif disc_type == 'gp_patch':
-                fake_pred = self._discriminator(augment(fake_img), torch.argmax(fake_label, dim=1))[0]
-            else:
-                fake_pred = self._discriminator(augment(fake_img))
+            fake_pred = self._discriminator(augment(fake_img))
 
             g_loss_adv = self._g_adv_loss(fake_pred)
             g_loss_reg = self._generator.orthogonal_regularizer() * orth_reg
@@ -221,29 +203,12 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
 
         if disc_type == 'oneclass':
             discriminator = Discriminator(n_channels, img_size)
-        elif disc_type == 'multiclass':
-            discriminator = MulticlassDiscriminator(n_channels, img_size, n_classes)
         elif disc_type == 'patch':
             ndf = self._config['discriminator']['ndf']  # number of filters
             n_layers = self._config['discriminator']['n_layers']
             actnorm = self._config['discriminator']['actnorm']
 
             discriminator = NLayerDiscriminator(n_channels, ndf, n_layers, use_actnorm=actnorm)
-        elif disc_type == 'pixel':
-            ndf = self._config['discriminator']['ndf']  # number of filters
-            discriminator = PixelDiscriminator(n_channels, ndf)
-
-        elif disc_type == 'resnet':
-            ndf = self._config['discriminator']['ndf']
-            n_blocks = self._config['discriminator']['n_blocks']
-
-            discriminator = ResnetDiscriminator(n_channels, ndf, n_blocks=n_blocks)
-        elif disc_type == 'gp_patch':
-
-            ndf = self._config['discriminator']['ndf']
-            n_layers = self._config['discriminator']['n_layers']
-            discriminator = GPPatchMcResDis(n_channels, ndf, n_layers, n_classes)
-
         else:
             raise ValueError('Unsupported discriminator')
 
@@ -276,7 +241,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
 
         return start_step, generator, discriminator, g_ema, g_optim, d_optim, encoder, classifier
 
-    def _save_model(self, step: int):
+    def _save_model(self, step: int) -> NoReturn:
         ckpt = {
             'step': step,
             'config': self._config,

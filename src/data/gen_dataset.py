@@ -1,5 +1,6 @@
 from typing import Optional, Callable
 
+import torch
 from torch.utils.data import Dataset
 
 from src.data import get_dataset
@@ -21,5 +22,5 @@ class GenDataset(Dataset):
     def __len__(self) -> int:
         return len(self._dataset)
 
-    def __getitem__(self, i: int):
+    def __getitem__(self, i: int) -> torch.Tensor:
         return self._dataset[i][0]

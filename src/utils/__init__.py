@@ -8,4 +8,4 @@ from .custom_types import PathOrStr
 
 from .plot import tsne_display_tensorboard
 
-from .ndtest import ks2d2s
+from .tsne import run_tsne, run_tsne_celeba

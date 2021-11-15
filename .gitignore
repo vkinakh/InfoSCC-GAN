@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,pycharm,images
 
 .idea/
+old_runs/
 runs/
 results/
 

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
+from src.utils import PathOrStr
 from src.utils import get_device
 from src.utils import SummaryWriterWithSources
 
@@ -8,7 +9,7 @@ from src.utils import SummaryWriterWithSources
 class BaseTrainer(ABC):
 
     def __init__(self,
-                 config_path: str,
+                 config_path: PathOrStr,
                  config: Dict):
 
         self._config = config
@@ -27,5 +28,5 @@ class BaseTrainer(ABC):
         pass
 
     @abstractmethod
-    def _save_model(self):
+    def _save_model(self, *args, **kwargs):
         pass

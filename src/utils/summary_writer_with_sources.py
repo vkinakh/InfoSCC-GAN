@@ -67,6 +67,15 @@ class SummaryWriterWithSources:
                   global_step: Optional[int] = None,
                   walltime: Optional = None) -> NoReturn:
 
+        """Adds image to Tensorboard
+
+        Args:
+            tag: image tag to use
+            img_tensor: image tensor to display
+            global_step: step
+            walltime:
+        """
+
         self._writer.add_image(tag, img_tensor, global_step, walltime)
 
     @property

@@ -10,7 +10,17 @@ from src.utils import PathOrStr
 from src.utils import image_loader
 
 
-def get_annotation(fnmtxt, verbose=True):
+def get_annotation(fnmtxt: PathOrStr, verbose: bool = True) -> pd.DataFrame:
+    """Opens CelebA dataset annotations and converts them into pandas data frame
+
+    Args:
+        fnmtxt: path to annotation file
+        verbose: if True, prints progress
+
+    Returns:
+        pd.DataFrame: data frame with annotations
+    """
+
     if verbose:
         print("_" * 70)
         print(fnmtxt)
@@ -103,18 +113,3 @@ class CelebADataset(Dataset):
     @property
     def columns(self):
         return self._columns
-
-
-if __name__ == '__main__':
-
-    columns = ['Bald', 'Mustache', 'Wearing_Hat', 'Eyeglasses', 'Wearing_Necktie']
-    path = '/home/kinakh/Datasets/CelebA/Img/img_align_celeba'
-    anno = '/home/kinakh/Datasets/CelebA/Anno/list_attr_celeba.txt'
-
-    dataset = CelebADataset(path, anno, True, columns)
-
-    for i, (img, lbl) in enumerate(dataset):
-        print(lbl)
-
-        if i == 10:
-            break

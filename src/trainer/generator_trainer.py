@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 from torchvision import transforms, utils
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from chamferdist import ChamferDistance
 
 from .base_trainer import BaseTrainer
@@ -21,7 +21,6 @@ from src.models import inception_score
 from src.loss import get_adversarial_losses, get_regularizer
 from src.utils import PathOrStr
 from src.utils import tsne_display_tensorboard
-from src.utils import ks2d2s
 
 
 class GeneratorTrainer(BaseTrainer):
@@ -52,10 +51,22 @@ class GeneratorTrainer(BaseTrainer):
         pass
 
     @abstractmethod
-    def _save_model(self):
+    def _save_model(self, *args, **kwargs):
         pass
 
-    def evaluate(self):
+    def evaluate(self) -> NoReturn:
+        """Runs evaluation:
+        - FID score
+        - Inception score
+        - Displays embeddings
+        - Explores labels
+        - Chamfer distance
+        - Attribute control accuracy
+        - Traverses z1, ... zk variables
+        - Explores epsilon
+        - Explores epsilon and zs
+        """
+
         ds_name = self._config['dataset']['name']
 
         fid_score = self._compute_fid_score()
@@ -68,9 +79,6 @@ class GeneratorTrainer(BaseTrainer):
             self._display_output_eps()
             self._explore_y()
 
-        ks_test = self._kolmogorov_smirnov_test()
-        self._writer.add_scalar('KS test', ks_test, 0)
-
         chamfer_dist = self._chamfer_distance()
         self._writer.add_scalar('Chamfer', float(chamfer_dist), 0)
 
@@ -81,6 +89,8 @@ class GeneratorTrainer(BaseTrainer):
         self._explore_eps_zs()
 
     def _attribute_control_accuracy(self):
+        """Runs attribute control accuracy"""
+
         ds_name = self._config['dataset']['name']
 
         if ds_name == 'celeba':
@@ -93,6 +103,8 @@ class GeneratorTrainer(BaseTrainer):
         return res
 
     def _attribute_control_accuracy_multi_label(self):
+        """Runs attribute control accuracy on multi label dataset"""
+
         n_out = self._config['dataset']['n_out']
         bs = self._config['batch_size']
         dataset = self._get_ds()
@@ -126,6 +138,8 @@ class GeneratorTrainer(BaseTrainer):
         return result
 
     def _attributes_control_accuracy_one_hot(self):
+        """Runs attribute control accuracy on one-hot label dataset"""
+
         n_out = self._config['dataset']['n_out']
         bs = self._config['batch_size']
 
@@ -159,6 +173,8 @@ class GeneratorTrainer(BaseTrainer):
         return result
 
     def _chamfer_distance(self):
+        """Runs Chamfer distance to compare real and generated samples"""
+
         loader = self._get_dl()
         embeddings = []
 
@@ -194,40 +210,12 @@ class GeneratorTrainer(BaseTrainer):
         chamfer_dist = ChamferDistance()
         return chamfer_dist(tsne_real, tsne_fake).detach().item()
 
-    def _kolmogorov_smirnov_test(self) -> float:
-        loader = self._get_dl()
-        embeddings = []
-
-        # real data embeddings
-        for _ in tqdm(range(200)):
-            img, _ = next(loader)
-            img = img.to(self._device)
-
-            with torch.no_grad():
-                h, _ = self._encoder(img)
-
-            embeddings.extend(h.cpu().numpy())
-
-        # generated data embeddings
-        for _ in tqdm(range(200)):
-            label_oh = self._sample_label()
-
-            with torch.no_grad():
-                img = self._g_ema(label_oh)
-                h, _ = self._encoder(img)
-
-            embeddings.extend(h.cpu().numpy())
-
-        tsne_emb = TSNE(n_components=2).fit_transform(embeddings)
-        n = len(tsne_emb)
-
-        tsne_real = tsne_emb[:n//2, ]
-        tsne_fake = tsne_emb[n//2:, ]
-
-        ks_test = ks2d2s(tsne_real[:, 0], tsne_real[:, 1], tsne_fake[:, 0], tsne_fake[:, 1])
-        return ks_test
-
     def _explore_eps_zs(self):
+        """Runs exploration of epsilon and z1, ... zk features
+
+        Epsilon and z1, ..., zk features are fixed, and y are explored
+        Images are saved in `explore_eps_zs` """
+
         traverse_samples = 8
         y = self._sample_label(traverse_samples)
 
@@ -257,6 +245,11 @@ class GeneratorTrainer(BaseTrainer):
         )
 
     def _explore_eps(self):
+        """Runs exploration of epsilon features
+
+        z1, ... zk features are fixed, epsilon features are randomly sampled
+        Images are saved in `explore_eps`"""
+
         traverse_samples = 8
         y = self._sample_label(traverse_samples)
 
@@ -283,6 +276,10 @@ class GeneratorTrainer(BaseTrainer):
         )
 
     def _traverse_zk(self):
+        """Runs explorations of z1, ... zk features
+
+        Epsilon and y values are set and z_i are changed gradually"""
+
         batch_size = self._config['batch_size']
 
         log_folder = self._writer.checkpoint_folder.parent / 'traverse_zk'
@@ -329,6 +326,8 @@ class GeneratorTrainer(BaseTrainer):
                 )
 
     def _explore_y(self) -> NoReturn:
+        """Runs exploration of y labels"""
+
         n = 49
         y = self._sample_label(n)
 
@@ -347,6 +346,8 @@ class GeneratorTrainer(BaseTrainer):
         Image.fromarray(imgs).save(log_folder / 'explore_y.png')
 
     def _display_output_eps(self) -> NoReturn:
+        """Displays 2D TSNE of epsilon values of generated and real images"""
+
         n_classes = self._config['dataset']['n_out']
         ds_name = self._config['dataset']['name']
 
@@ -405,7 +406,7 @@ class GeneratorTrainer(BaseTrainer):
                 transforms.ToTensor(),
                 transforms.Normalize(0.5, 0.5, inplace=True)
             ])
-        elif name in ['afhq', 'celeba', 'ffhq']:
+        elif name in ['afhq', 'celeba']:
             transform = transforms.Compose([
                 transforms.Resize((size, size)),
                 transforms.ConvertImageDtype(torch.float),
@@ -442,13 +443,6 @@ class GeneratorTrainer(BaseTrainer):
         """
 
         batch_size = self._config['batch_size']
-
-        # name = self._config['dataset']['name']
-        # path = self._config['dataset']['path']
-        # anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['anno']
-
-        # transform = self._get_data_transform()
-        # dataset = GenDataset(name, path, True, anno)
 
         dataset = GANDataset(self._g_ema, n=100_000)
         score = inception_score(dataset, batch_size=batch_size, resize=True)[0]
@@ -508,13 +502,13 @@ class GeneratorTrainer(BaseTrainer):
         d_adv_loss, g_adv_loss = get_adversarial_losses(self._config['loss'])
         d_reg_loss = get_regularizer("r1")
 
-        if ds_name in ['celeba', 'ffhq']:
+        if ds_name in ['celeba']:
             cls_loss = nn.BCEWithLogitsLoss()
         else:
             cls_loss = nn.CrossEntropyLoss()
         return d_adv_loss, g_adv_loss, d_reg_loss, cls_loss
 
-    def _get_ds(self):
+    def _get_ds(self) -> Dataset:
 
         name = self._config['dataset']['name']
         path = self._config['dataset']['path']
@@ -525,7 +519,7 @@ class GeneratorTrainer(BaseTrainer):
         dataset = get_dataset(name, path, anno_file=anno, transform=transform, columns=columns)
         return dataset
 
-    def _get_dl(self):
+    def _get_dl(self) -> DataLoader:
         batch_size = self._config['batch_size']
         n_workers = self._config['n_workers']
 

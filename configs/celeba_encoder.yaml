@@ -1,0 +1,27 @@
+epochs: 200      # number of training epochs
+batch_size: 128  # batch size to use, when training classifier
+log_every: 100   # how often to log loss (steps)
+val_every: 5     # how often to run validation (epochs)
+eval_every: 5    # how often to run evaluation (epochs)
+
+model:                   # encoder parameters
+  base_model: resnet50   # base mode
+  n_channels: 3          # number of channels in image
+  out_dim: 128           # z-projection size
+
+lr: 3e-4          # learning rate
+wd: 1e-4          # weight decay
+fine_tune_from:   # path to model, to fine tune from
+
+input_size: (128, 128, 3)   # image size
+
+loss:                           # contrastive loss parameters
+  temperature: 0.5              # temperature normalization parameter
+  use_cosine_similarity: True   # if true, use cosine similarity, else use dot similarity
+
+dataset:          # dataset parameters
+  name: celeba    # dataset name
+  path: <>        # path to dataset
+  anno_path: <>   # path to annotations
+
+comment: simclr_celeba

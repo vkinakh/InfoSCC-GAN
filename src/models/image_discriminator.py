@@ -1,11 +1,14 @@
 import math
 
+import torch
 import torch.nn as nn
 
 from .blocks import ConvLayer
 
 
 class Discriminator(nn.Module):
+    """Basic global image discriminator"""
+
     def __init__(
         self,
         in_channels: int = 3,
@@ -38,6 +41,6 @@ class Discriminator(nn.Module):
             nn.Linear(channels, 1)
         )
 
-    def forward(self, input):
-        out = self.blocks(input)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.blocks(x)
         return self.classifier(out.reshape(len(out), -1))

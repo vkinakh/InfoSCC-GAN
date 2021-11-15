@@ -1,8 +1,15 @@
+from typing import Tuple, Callable
+
 import torch
 
 
 # adversarial losses
-def hinge_loss():
+def hinge_loss() -> Tuple[Callable, Callable]:
+    """Hinge GAN loss https://arxiv.org/abs/1705.02894v2
+
+    Returns:
+        Tuple[Callable, Callable]: discriminator loss, generator loss
+    """
 
     def d_loss(real_pred, fake_pred):
         return (
@@ -16,7 +23,12 @@ def hinge_loss():
     return d_loss, g_loss
 
 
-def non_saturating_loss():
+def non_saturating_loss() -> Tuple[Callable, Callable]:
+    """Non saturating GAN loss
+
+    Returns:
+        Tuple[Callable, Callable]: discriminator loss, generator loss
+    """
 
     def d_loss(real_pred, fake_pred):
         return (
@@ -31,6 +43,11 @@ def non_saturating_loss():
 
 
 def lsgan_loss():
+    """LSGAN (least square) loss
+
+    Returns:
+        Tuple[Callable, Callable]: discriminator loss, generator loss
+    """
 
     def d_loss(real_pred, fake_pred):
         return (

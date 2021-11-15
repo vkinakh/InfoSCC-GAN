@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 import cv2
 
 
-def tsne_display_tensorboard(embeddings, c_vector:Optional = None, title: Optional[str] = None) -> np.ndarray:
+def tsne_display_tensorboard(embeddings: np.ndarray,
+                             c_vector: Optional[np.ndarray] = None,
+                             title: Optional[str] = None) -> np.ndarray:
     fig = plt.figure()
 
     if title is not None:

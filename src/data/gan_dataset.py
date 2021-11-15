@@ -5,6 +5,8 @@ from src.models import ConditionalGenerator
 
 class GANDataset(Dataset):
 
+    """Dataset that returns generated images"""
+
     def __init__(self, model: ConditionalGenerator,
                  n: int):
         self._model = model

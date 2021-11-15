@@ -1,6 +1,5 @@
 from typing import Optional
 from functools import partial
-import math
 
 import torch
 import torch.nn as nn

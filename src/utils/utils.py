@@ -1,3 +1,5 @@
+from typing import NoReturn
+
 import yaml
 from functools import partial
 
@@ -26,7 +28,17 @@ def get_config(config):
         return yaml.load(stream, Loader=yaml.FullLoader)
 
 
-def accumulate(model1: nn.Module, model2: nn.Module, decay: float = 0.999):
+def accumulate(model1: nn.Module, model2: nn.Module, decay: float = 0.999) -> NoReturn:
+    """Applies parameter accumulation to copy parameters from model2 into model1
+
+    Args:
+        model1: model to copy parameters to
+
+        model2: model to copy parameters from
+
+        decay: multiplier to use, when coping parameters
+    """
+
     par1 = dict(model1.named_parameters())
     par2 = dict(model2.named_parameters())
 
