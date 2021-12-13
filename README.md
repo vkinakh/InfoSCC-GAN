@@ -2,6 +2,8 @@
 
 This repos contains official Pytorch implementation of the paper: **Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN**, accepted at NeurIPS 2021 Workshop [Bayesian Deep Learning](http://bayesiandeeplearning.org/)
 
+[Paper](http://bayesiandeeplearning.org/2021/papers/15.pdf) [Poster](docs/poster_NIPS_2021_BDL_InfoSCC-GAN.pdf)
+
 ## Demos
 
 <h2 align="center"><a href="https://info-scc-celeba-10.herokuapp.com/">CelebA demo with 10 attributes</a> | 

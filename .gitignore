@@ -64,8 +64,8 @@ models/FFHQ
 *.svg
 *.svgz
 
-# Portable Document Format
-*.pdf
+## Portable Document Format
+#*.pdf
 
 # X BitMap
 *.xbm
