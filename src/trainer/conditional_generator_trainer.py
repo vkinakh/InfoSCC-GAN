@@ -17,6 +17,9 @@ from src.utils import accumulate
 from src.utils import PathOrStr
 
 
+torch.backends.cudnn.benchmark = True
+
+
 class ConditionalGeneratorTrainer(GeneratorTrainer):
 
     """Trainer for conditional generator"""
@@ -54,6 +57,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
 
         log_sample = next(loader)[1] if ds_name == 'celeba' else self._sample_label()
         log_sample = log_sample.to(self._device)
+        log_sample = log_sample[:16]
 
         samples_folder = self._writer.checkpoint_folder.parent / 'samples'
         samples_folder.mkdir(exist_ok=True, parents=True)
@@ -146,7 +150,7 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
                     utils.save_image(
                         self._g_ema(log_sample),
                         samples_folder / f'{step:07}.png',
-                        nrow=int(batch_size ** 0.5),
+                        nrow=4,
                         normalize=True,
                         value_range=(-1, 1),
                     )
@@ -258,10 +262,6 @@ class ConditionalGeneratorTrainer(GeneratorTrainer):
             fid_score = self._compute_fid_score()
             ckpt['fid'] = fid_score
             self._writer.add_scalar('FID', fid_score, step)
-
-            i_score = self._compute_inception_score()
-            ckpt['is'] = i_score
-            self._writer.add_scalar('IS', i_score, step)
 
         checkpoint_folder = self._writer.checkpoint_folder
         save_file = checkpoint_folder / f'{step:07}.pt'

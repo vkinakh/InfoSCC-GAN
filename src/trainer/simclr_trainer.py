@@ -19,6 +19,9 @@ from src.utils import run_tsne, run_tsne_celeba
 from src.utils import PathOrStr
 
 
+torch.backends.cudnn.benchmark = True
+
+
 class SimCLRTrainer(BaseTrainer):
 
     """Trainer for SimCLR"""
@@ -126,7 +129,7 @@ class SimCLRTrainer(BaseTrainer):
         dataset_name = self._config['dataset']['name']
 
         cpu_count = os.cpu_count()
-        contrastive_trans = ContrastiveAugmentor(input_shape, dataset_name)
+        contrastive_trans = ContrastiveAugmentor(input_shape)
 
         if dataset_name == 'celeba':
             ds_path = self._config['dataset']['path']
@@ -141,7 +144,7 @@ class SimCLRTrainer(BaseTrainer):
             ds = ConcatDataset([train_ds, val_ds])
 
         n = len(ds)
-        n_train = int(0.95 * n)
+        n_train = int(0.8 * n)
 
         train_ds = Subset(ds, indices=range(0, n_train))
         train_dl = DataLoader(train_ds, batch_size, num_workers=cpu_count,
@@ -151,7 +154,7 @@ class SimCLRTrainer(BaseTrainer):
         val_dl = DataLoader(val_ds, batch_size, num_workers=cpu_count,
                             shuffle=True, drop_last=True, pin_memory=True)
 
-        val_trans = ValidAugmentor(input_shape, dataset_name)
+        val_trans = ValidAugmentor(input_shape)
 
         if dataset_name == 'celeba':
             anno_file = self._config['dataset']['anno_path']
@@ -164,7 +167,7 @@ class SimCLRTrainer(BaseTrainer):
         n_test = int(0.2 * len(test_ds))
         test_ds = Subset(test_ds, np.random.randint(0, len(test_ds), n_test))
         test_dl = DataLoader(test_ds, batch_size, num_workers=cpu_count,
-                             shuffle=True, drop_last=True, pin_memory=True)
+                             shuffle=True, drop_last=False, pin_memory=True)
         return train_dl, val_dl, test_dl
 
     def _load_model(self) -> nn.Module:

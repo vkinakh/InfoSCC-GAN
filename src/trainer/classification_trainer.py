@@ -16,6 +16,9 @@ from src.models import ResNetSimCLR
 from src.data import get_dataset
 
 
+torch.backends.cudnn.benchmark = True
+
+
 class ClassificationTrainer(BaseTrainer):
 
     """Trainer for classifier"""
@@ -45,6 +48,7 @@ class ClassificationTrainer(BaseTrainer):
 
             for img, label in train_dl:
                 img, label = img.to(self._device), label.to(self._device)
+                label = label.to(torch.long)
 
                 self._optimizer.zero_grad()
                 logits = self._model(img)

@@ -23,8 +23,12 @@ def load_patched_inception_v3():
 def extract_loader_features(loader, inception, device):
     feature_list = []
 
+    up = nn.Upsample(size=(299, 299), mode='bilinear').type(torch.cuda.FloatTensor)
+
     for img in tqdm(loader, desc="extracting ref features for FID: ", leave=False):
         img = img.to(device)
+        img = up(img)
+
         feature = inception(img)[0].view(img.shape[0], -1)
         feature_list.append(feature.to("cpu"))
 
@@ -38,9 +42,12 @@ def extract_model_features(model, inception, device, num_samples=50_000, batch_s
 
     num_iters = int(np.ceil(num_samples / batch_size))
 
+    up = nn.Upsample(size=(299, 299), mode='bilinear').type(torch.cuda.FloatTensor)
+
     feature_list = []
     for _ in tqdm(range(num_iters), desc="extracting generated data features for FID: ", leave=False):
         batch = model.sample(batch_size).to(device)
+        batch = up(batch)
         feature = inception(batch)[0].view(batch.shape[0], -1)
         feature_list.append(feature.to("cpu"))
 
@@ -88,7 +95,7 @@ def fid_generator(generator, ref_mean, ref_cov, inception, device, num_samples, 
 def get_fid_fn(dataset, device, num_samples=50_000):
     inception = load_patched_inception_v3().eval().to(device)
 
-    loader = DataLoader(dataset, batch_size=128, shuffle=False, drop_last=False, num_workers=8)
+    loader = DataLoader(dataset, batch_size=16, shuffle=False, drop_last=False, num_workers=8)
 
     ref_feat = extract_loader_features(loader, inception, device)[:num_samples]
 

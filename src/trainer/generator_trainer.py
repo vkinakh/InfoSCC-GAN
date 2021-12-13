@@ -390,6 +390,28 @@ class GeneratorTrainer(BaseTrainer):
 
         self._writer.add_image('TSNE', img_tsne, 0)
 
+    def _get_fid_data_transform(self):
+        """Returns transform for the data, before the FID calculation
+
+        Returns:
+            data tranform
+        """
+
+        name = self._config['dataset']['name']
+        size = self._config['dataset']['size']
+
+        if name in ['afhq', 'celeba']:
+            transform = transforms.Compose([
+                transforms.Resize((size, size)),
+                transforms.ConvertImageDtype(torch.float),
+                transforms.Normalize(0.5, 0.5),
+                transforms.Resize((299, 299))
+            ])
+        else:
+            raise ValueError('Unsupported dataset')
+
+        return transform
+
     def _get_data_transform(self):
         """Returns transform for the data, based on the config
 
@@ -428,7 +450,7 @@ class GeneratorTrainer(BaseTrainer):
         path = self._config['dataset']['path']
         anno = None if 'anno' not in self._config['dataset'] else self._config['dataset']['anno']
 
-        transform = self._get_data_transform()
+        transform = self._get_fid_data_transform()
         dataset = GenDataset(name, path, True, anno, transform=transform)
 
         fid_func = get_fid_fn(dataset, self._device, len(dataset))
