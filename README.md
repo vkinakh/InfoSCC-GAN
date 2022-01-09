@@ -4,6 +4,15 @@ This repos contains official Pytorch implementation of the paper: **Information-
 
 [Paper](http://bayesiandeeplearning.org/2021/papers/15.pdf) [Poster](docs/poster_NIPS_2021_BDL_InfoSCC-GAN.pdf)
 
+### Citation
+```commandline
+@inproceedings { kinakh2021informationtheoretic,
+    title = { Information-theoretic stochastic contrastive conditional GAN: InfoSCC-GAN },
+    author = { Kinakh, Vitaliy and Drozdova, Mariia and Quétant, Guillaume and Golling, Tobias and Voloshynovskiy, Slava },
+    booktitle = { Bayesian Deep Learning NeurIPS workshop },
+    year = { 2021 }
+}
+```
 ## Demos
 
 <h2 align="center"><a href="https://info-scc-celeba-10.herokuapp.com/">CelebA demo with 10 attributes</a> | 
